@@ -1,0 +1,216 @@
+package susanin
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"strings"
+)
+
+const (
+	matchConst = iota
+	matchVar
+	matchSplat
+)
+
+const valuesKey = "values"
+const rootLink = "#ROOT#"
+
+// Susanin is a URI path router object
+type Susanin struct {
+	root *chainLink
+}
+
+type chainLink struct {
+	mtype     int
+	name      string
+	nextConst map[string]*chainLink
+	nextVar   *chainLink
+	nextSplat *chainLink
+	handler   http.HandlerFunc
+}
+
+func newChainLink(token string) *chainLink {
+	var mtype int
+
+	switch {
+	case isVariable(token):
+		mtype = matchVar
+		token = token[1:]
+
+	case isSplat(token):
+		mtype = matchSplat
+
+	default:
+		mtype = matchConst
+	}
+
+	return &chainLink{
+		mtype: mtype,
+		name:  token,
+	}
+}
+
+func isVariable(token string) bool {
+	return token[0] == ':'
+}
+
+func isSplat(token string) bool {
+	return token == "*"
+}
+
+// New creates a new Susanin instance
+func NewSusanin() *Susanin {
+	return &Susanin{
+		root: newChainLink(rootLink),
+	}
+}
+
+// Handle add a route and a handler
+func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
+	splatIdx := strings.IndexRune(path, '*')
+
+	if splatIdx != -1 && splatIdx != len(path)-1 {
+		return errors.New("invalid path: splat must be at the end of the path")
+	}
+
+	if path[0] == '/' {
+		path = path[1:]
+	}
+
+	// clear trailing slash so that it matches /path and /path/
+	if path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
+	tokens := strings.Split(path, "/")
+
+	cur := s.root
+
+	for _, token := range tokens {
+		switch {
+		case isVariable(token):
+			if cur.nextVar == nil {
+				cur.nextVar = newChainLink(token)
+			} else if token[1:] != cur.nextVar.name {
+				return errors.New("conflict: duplicate pattern at the same level")
+			}
+
+			cur = cur.nextVar
+
+		case isSplat(token):
+			cur.nextSplat = newChainLink(token)
+			cur = cur.nextSplat
+			break // no more processing after that - greedy matching
+
+		default:
+			var next *chainLink
+			if cur.nextConst == nil {
+				cur.nextConst = make(map[string]*chainLink)
+				next = newChainLink(token)
+				cur.nextConst[token] = next
+
+			} else {
+				if found, ok := cur.nextConst[token]; ok {
+					next = found
+				} else {
+					next = newChainLink(token)
+					cur.nextConst[token] = next
+				}
+			}
+
+			cur = next
+		}
+	}
+
+	if cur.handler != nil {
+		return errors.New("handler already exists")
+	}
+
+	cur.handler = handler
+
+	return
+}
+
+func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
+	if path[0] == '/' {
+		path = path[1:]
+	}
+
+	// clear trailing slash so that it matches /path and /path/
+	if path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
+	tokens := strings.Split(path, "/")
+
+	cur := s.root
+	var splatHandler http.HandlerFunc
+	var args map[string]string
+	hasSplat := false
+	found := false
+
+	for _, token := range tokens {
+		found = false
+		if next, ok := cur.nextConst[token]; ok {
+			cur = next
+			found = true
+
+		} else if cur.nextVar != nil {
+			cur = cur.nextVar
+			if args == nil {
+				args = make(map[string]string)
+			}
+			args[cur.name] = token
+			found = true
+		}
+
+		if cur.nextSplat != nil {
+			splatHandler = cur.nextSplat.handler
+			hasSplat = true
+		}
+
+		if !found {
+			break
+		}
+	}
+
+	if found {
+		return cur.handler, args, nil
+	}
+
+	if hasSplat {
+		return splatHandler, args, nil
+	}
+
+	return nil, nil, errors.New("not found")
+}
+
+func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
+	uri := r.URL.Path
+
+	handler, args, err := s.Lookup(uri)
+	if err != nil {
+		http.Error(w, err.Error(), 404)
+		return
+	}
+
+	if len(args) > 0 {
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, valuesKey, args)
+		r = r.WithContext(ctx)
+	}
+
+	handler(w, r)
+}
+
+func GetValues(r *http.Request) (map[string]string, bool) {
+	ctx := r.Context()
+	value := ctx.Value(valuesKey)
+	if value == nil {
+		return nil, false
+	}
+
+	args, ok := value.(map[string]string)
+	return args, ok
+}
