@@ -78,7 +78,6 @@ func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
 		case token == "*": // splat
 			cur.nextSplat = newChainLink(token)
 			cur = cur.nextSplat
-			break // no more processing after that - greedy matching
 
 		default:
 			var next *chainLink
