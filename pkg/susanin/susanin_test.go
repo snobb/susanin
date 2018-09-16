@@ -37,32 +37,27 @@ func Test(t *testing.T) {
 			Expect(ok).To(BeTrue())
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("test"))
-			Expect(cur.mtype).To(Equal(matchConst))
 
 			cur, ok = cur.nextConst["this"]
 			Expect(ok).To(BeTrue())
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("this"))
-			Expect(cur.mtype).To(Equal(matchConst))
 
 			cur = cur.nextVar
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("uri"))
-			Expect(cur.mtype).To(Equal(matchVar))
 
 			s.Handle("/hello/*", dummy)
 			cur, ok = s.root.nextConst["hello"]
 			Expect(ok).To(BeTrue())
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("hello"))
-			Expect(cur.mtype).To(Equal(matchConst))
 
 			Expect(cur.nextSplat).NotTo(BeNil())
 			cur = cur.nextSplat
 			Expect(ok).To(BeTrue())
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("*"))
-			Expect(cur.mtype).To(Equal(matchSplat))
 			Expect(cur.handler).NotTo(BeNil())
 
 			s.Handle("/test/this/:uri/test", dummy)
@@ -71,7 +66,6 @@ func Test(t *testing.T) {
 			Expect(ok).To(BeTrue())
 			Expect(cur).NotTo(BeNil())
 			Expect(cur.name).To(Equal("test"))
-			Expect(cur.mtype).To(Equal(matchConst))
 		})
 
 		g.It("Should return an error if splat is in the middle of the path", func() {

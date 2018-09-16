@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-const (
-	matchConst = iota
-	matchVar
-	matchSplat
-)
-
 const valuesKey = "values"
 const rootLink = "#ROOT#"
 
@@ -22,7 +16,6 @@ type Susanin struct {
 }
 
 type chainLink struct {
-	mtype     int
 	name      string
 	nextConst map[string]*chainLink
 	nextVar   *chainLink
@@ -31,32 +24,14 @@ type chainLink struct {
 }
 
 func newChainLink(token string) *chainLink {
-	var mtype int
-
-	switch {
-	case isVariable(token):
-		mtype = matchVar
+	// strip colon from variable name
+	if token[0] == ':' {
 		token = token[1:]
-
-	case isSplat(token):
-		mtype = matchSplat
-
-	default:
-		mtype = matchConst
 	}
 
 	return &chainLink{
-		mtype: mtype,
-		name:  token,
+		name: token,
 	}
-}
-
-func isVariable(token string) bool {
-	return token[0] == ':'
-}
-
-func isSplat(token string) bool {
-	return token == "*"
 }
 
 // New creates a new Susanin instance
@@ -89,7 +64,7 @@ func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
 
 	for _, token := range tokens {
 		switch {
-		case isVariable(token):
+		case token[0] == ':': // variable
 			if cur.nextVar == nil {
 				cur.nextVar = newChainLink(token)
 			} else if token[1:] != cur.nextVar.name {
@@ -98,7 +73,7 @@ func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
 
 			cur = cur.nextVar
 
-		case isSplat(token):
+		case token == "*": // splat
 			cur.nextSplat = newChainLink(token)
 			cur = cur.nextSplat
 			break // no more processing after that - greedy matching
