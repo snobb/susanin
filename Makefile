@@ -4,7 +4,7 @@ CMDSRC := ./cmd/${TARGET}
 all: fmt vet build
 
 vet:
-	go vet ${CMDSRC}
+	go vet ./...
 
 fmt:
 	gofmt -l -w .

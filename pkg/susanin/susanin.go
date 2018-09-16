@@ -7,7 +7,9 @@ import (
 	"strings"
 )
 
-const valuesKey = "values"
+type valueKey string
+
+const valuesKey valueKey = "values"
 const rootLink = "#ROOT#"
 
 // Susanin is a URI path router object
@@ -34,7 +36,7 @@ func newChainLink(token string) *chainLink {
 	}
 }
 
-// New creates a new Susanin instance
+// NewSusanin creates a new Susanin instance
 func NewSusanin() *Susanin {
 	return &Susanin{
 		root: newChainLink(rootLink),
@@ -107,6 +109,7 @@ func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
 	return
 }
 
+// Lookup for a handler in the path, a handler, pattern values and error is returned.
 func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
 	if path[0] == '/' {
 		path = path[1:]
@@ -121,7 +124,7 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 
 	cur := s.root
 	var splatHandler http.HandlerFunc
-	var args map[string]string
+	var values map[string]string
 	hasSplat := false
 	found := false
 
@@ -133,10 +136,10 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 
 		} else if cur.nextVar != nil {
 			cur = cur.nextVar
-			if args == nil {
-				args = make(map[string]string)
+			if values == nil {
+				values = make(map[string]string)
 			}
-			args[cur.name] = token
+			values[cur.name] = token
 			found = true
 		}
 
@@ -151,34 +154,37 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 	}
 
 	if found {
-		return cur.handler, args, nil
+		return cur.handler, values, nil
 	}
 
 	if hasSplat {
-		return splatHandler, args, nil
+		return splatHandler, values, nil
 	}
 
 	return nil, nil, errors.New("not found")
 }
 
+// Router is a http.HandlerFunc router that dispatches the request
+// based on saved routes and handlers
 func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 
-	handler, args, err := s.Lookup(uri)
+	handler, values, err := s.Lookup(uri)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	if len(args) > 0 {
+	if len(values) > 0 {
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, valuesKey, args)
+		ctx = context.WithValue(ctx, valuesKey, values)
 		r = r.WithContext(ctx)
 	}
 
 	handler(w, r)
 }
 
+// GetValues gets the values from match patters from the http.Request context
 func GetValues(r *http.Request) (map[string]string, bool) {
 	ctx := r.Context()
 	value := ctx.Value(valuesKey)
@@ -186,6 +192,6 @@ func GetValues(r *http.Request) (map[string]string, bool) {
 		return nil, false
 	}
 
-	args, ok := value.(map[string]string)
-	return args, ok
+	values, ok := value.(map[string]string)
+	return values, ok
 }

@@ -10,12 +10,12 @@ import (
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
-	args, ok := susanin.GetValues(r)
+	values, ok := susanin.GetValues(r)
 	if !ok {
 		log.Println("Empty arguments")
 	}
 
-	message := fmt.Sprintf("hello %s\n", args["name"])
+	message := fmt.Sprintf("hello %s\n", values["name"])
 	w.Write([]byte(message))
 }
 
@@ -23,12 +23,12 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 	w.WriteHeader(200)
 
-	args, ok := susanin.GetValues(r)
+	values, ok := susanin.GetValues(r)
 	if !ok {
 		log.Println("Empty arguments")
 	}
 
-	message := fmt.Sprintf("hello %s [uri: %s]\n", args["name"], uri)
+	message := fmt.Sprintf("hello %s [uri: %s]\n", values["name"], uri)
 	w.Write([]byte(message))
 }
 
