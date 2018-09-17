@@ -156,7 +156,7 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 		}
 	}
 
-	if found {
+	if found && cur.handler != nil {
 		return cur.handler, values, nil
 	}
 
