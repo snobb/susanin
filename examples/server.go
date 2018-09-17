@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"susanin/pkg/susanin"
 	"susanin/pkg/susanin/middleware"
@@ -24,7 +25,8 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Empty arguments")
 	}
 
-	message := fmt.Sprintf("hello %s\n", values["name"])
+	message := fmt.Sprintf("Hello %s %s\n",
+		strings.Title(values["fname"]), strings.Title(values["lname"]))
 	w.Write([]byte(message))
 }
 
@@ -37,7 +39,7 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Empty arguments")
 	}
 
-	message := fmt.Sprintf("hello %s [uri: %s]\n", values["name"], uri)
+	message := fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
 	w.Write([]byte(message))
 }
 
@@ -52,8 +54,8 @@ func main() {
 	router := susanin.NewSusanin()
 	router.Handle("/home/*", homeHandler)
 	router.Handle("/short", homeHandler)
-	router.Handle("/hello/:name", helloHandler)
-	router.Handle("/hello/:name/*", helloSplatHandler)
+	router.Handle("/hello/:fname/:lname/", helloHandler)
+	router.Handle("/hello/:fname/*", helloSplatHandler)
 	router.Handle("/*", fallbackHandler)
 
 	dh := susanin.DispatchHandler{}
