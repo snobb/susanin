@@ -1,4 +1,4 @@
-module httprouter
+module susanin
 
 require (
 	github.com/franela/goblin v0.0.0-20180624194345-6af5ecb776ce
