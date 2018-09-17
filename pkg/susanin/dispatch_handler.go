@@ -1,5 +1,9 @@
 package susanin
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import "net/http"
 
 // MiddleWare is a type for MiddleWare function

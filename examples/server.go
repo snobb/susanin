@@ -1,5 +1,9 @@
 package main
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"fmt"
 	"log"

@@ -1,5 +1,9 @@
 package susanin
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"log"
 	"net/http"
