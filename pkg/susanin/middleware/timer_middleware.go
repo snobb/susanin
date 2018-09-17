@@ -1,4 +1,4 @@
-package susanin
+package middleware
 
 import (
 	"log"
