@@ -1,5 +1,5 @@
-TARGET := httprouter
-CMDSRC := ./cmd/${TARGET}
+TARGET := susanin
+EXAMPLESRC := ./examples
 
 all: fmt vet build
 
@@ -13,7 +13,10 @@ test:
 	go test -cover ./...
 
 build:
-	go build -o ./bin/${TARGET} ${CMDSRC}
+	go install ./pkg/${TARGET}
+
+examples: vet fmt
+	go build -o ./bin/${TARGET} ${EXAMPLESRC}
 
 clean:
 	go clean ./...

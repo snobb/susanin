@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-type valueKey string
+type valueKeyName string
 
-const valuesKey valueKey = "values"
+const valuesKey valueKeyName = "values"
 const rootLink = "#ROOT#"
 
 // Susanin is a URI path router object

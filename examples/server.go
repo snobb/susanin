@@ -5,8 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"httprouter/pkg/susanin"
+	"susanin/pkg/susanin"
 )
+
+func fallbackHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("fallback handler\n"))
+}
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
@@ -45,6 +49,7 @@ func main() {
 	router.Handle("/short", homeHandler)
 	router.Handle("/hello/:name", helloHandler)
 	router.Handle("/hello/:name/*", helloSplatHandler)
+	router.Handle("/*", fallbackHandler)
 
 	dh := susanin.DispatchHandler{}
 	dh.Attach(susanin.TimerMiddleware)
