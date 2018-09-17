@@ -128,6 +128,11 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 	found := false
 
 	for _, token := range tokens {
+		if cur.nextSplat != nil {
+			splatHandler = cur.nextSplat.handler
+			hasSplat = true
+		}
+
 		found = false
 		if next, ok := cur.nextConst[token]; ok {
 			cur = next
@@ -140,11 +145,6 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 			}
 			values[cur.name] = token
 			found = true
-		}
-
-		if cur.nextSplat != nil {
-			splatHandler = cur.nextSplat.handler
-			hasSplat = true
 		}
 
 		if !found {

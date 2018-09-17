@@ -166,4 +166,33 @@ func Test(t *testing.T) {
 			Expect(f1).To(Equal(f2))
 		})
 	})
+
+	g.Describe("Test splat fallback", func() {
+		var s *Susanin
+		g.Before(func() {
+			s = NewSusanin()
+			s.Handle("/short", static)
+			s.Handle("/*", splat)
+		})
+
+		g.It("Should fallback to splat if no longer matches with the specific path", func() {
+			handler, args, err := s.Lookup("/short/")
+			Expect(err).To(BeNil())
+			Expect(args).To(BeEmpty())
+			Expect(handler).NotTo(BeNil())
+			f1 := runtime.FuncForPC(reflect.ValueOf(static).Pointer()).Name()
+			f2 := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+			Expect(f1).To(Equal(f2))
+
+			log.Println(s.root.nextSplat)
+			handler, args, err = s.Lookup("/short/aaa/bbb")
+			Expect(err).To(BeNil())
+			Expect(args).To(BeEmpty())
+			Expect(handler).NotTo(BeNil())
+			log.Println(handler, args, err)
+			f1 = runtime.FuncForPC(reflect.ValueOf(splat).Pointer()).Name()
+			f2 = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+			Expect(f1).To(Equal(f2))
+		})
+	})
 }
