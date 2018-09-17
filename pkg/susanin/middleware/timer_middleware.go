@@ -1,5 +1,9 @@
 package middleware
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"log"
 	"net/http"

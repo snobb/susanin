@@ -1,5 +1,9 @@
 package susanin
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"context"
 	"errors"
@@ -183,7 +187,7 @@ func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
 	handler(w, r)
 }
 
-// GetValues gets the values from match patters from the http.Request context
+// GetValues gets the match pattern values from the http.Request context
 func GetValues(r *http.Request) (map[string]string, bool) {
 	ctx := r.Context()
 	value := ctx.Value(valuesKey)
