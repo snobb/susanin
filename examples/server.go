@@ -56,5 +56,8 @@ func main() {
 	dh.Attach(middleware.TimerMiddleware)
 
 	mux.HandleFunc("/", dh.Handler(router.Router))
-	http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", mux)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
