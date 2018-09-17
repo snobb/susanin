@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"susanin/pkg/susanin"
+	"susanin/pkg/susanin/middleware"
 )
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +53,7 @@ func main() {
 	router.Handle("/*", fallbackHandler)
 
 	dh := susanin.DispatchHandler{}
-	dh.Attach(susanin.TimerMiddleware)
+	dh.Attach(middleware.TimerMiddleware)
 
 	mux.HandleFunc("/", dh.Handler(router.Router))
 	http.ListenAndServe(":8080", mux)
