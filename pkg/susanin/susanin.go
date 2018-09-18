@@ -18,7 +18,8 @@ const rootLink = "#ROOT#"
 
 // Susanin is a URI path router object
 type Susanin struct {
-	root *chainLink
+	root            *chainLink
+	dispatchHandler DispatchHandler
 }
 
 type chainLink struct {
@@ -43,7 +44,8 @@ func newChainLink(token string) *chainLink {
 // NewSusanin creates a new Susanin instance
 func NewSusanin() *Susanin {
 	return &Susanin{
-		root: newChainLink(rootLink),
+		root:            newChainLink(rootLink),
+		dispatchHandler: DispatchHandler{},
 	}
 }
 
@@ -185,6 +187,17 @@ func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handler(w, r)
+}
+
+// RouterHandler return an http.HandlerFunc with all attached middleware
+func (s *Susanin) RouterHandler() http.HandlerFunc {
+	return s.dispatchHandler.Handler(s.Router)
+}
+
+// AttachMiddleware adds middleware to the chain
+func (s *Susanin) AttachMiddleware(next MiddleWare) *Susanin {
+	s.dispatchHandler.Attach(next)
+	return s
 }
 
 // GetValues gets the match pattern values from the http.Request context

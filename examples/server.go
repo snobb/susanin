@@ -58,10 +58,9 @@ func main() {
 	router.Handle("/hello/:fname/*", helloSplatHandler)
 	router.Handle("/*", fallbackHandler)
 
-	dh := susanin.DispatchHandler{}
-	dh.Attach(middleware.TimerMiddleware)
+	router.AttachMiddleware(middleware.TimerMiddleware)
 
-	mux.HandleFunc("/", dh.Handler(router.Router))
+	mux.HandleFunc("/", router.RouterHandler())
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())
