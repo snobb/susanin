@@ -1,4 +1,4 @@
-package susanin
+package router
 
 /**
  * @author: Alex Kozadaev
@@ -16,10 +16,9 @@ type valueKeyName string
 const valuesKey valueKeyName = "values"
 const rootLink = "#ROOT#"
 
-// Susanin is a URI path router object
-type Susanin struct {
-	root            *chainLink
-	dispatchHandler DispatchHandler
+// SusaninRouter is a URI path router object
+type SusaninRouter struct {
+	root *chainLink
 }
 
 type chainLink struct {
@@ -41,16 +40,15 @@ func newChainLink(token string) *chainLink {
 	}
 }
 
-// NewSusanin creates a new Susanin instance
-func NewSusanin() *Susanin {
-	return &Susanin{
-		root:            newChainLink(rootLink),
-		dispatchHandler: DispatchHandler{},
+// NewSusaninRouter creates a new SusaninRouter instance
+func NewSusaninRouter() *SusaninRouter {
+	return &SusaninRouter{
+		root: newChainLink(rootLink),
 	}
 }
 
 // Handle add a route and a handler
-func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
+func (s *SusaninRouter) Handle(path string, handler http.HandlerFunc) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
@@ -115,7 +113,7 @@ func (s *Susanin) Handle(path string, handler http.HandlerFunc) (err error) {
 }
 
 // Lookup for a handler in the path, a handler, pattern values and error is returned.
-func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
+func (s *SusaninRouter) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -169,9 +167,9 @@ func (s *Susanin) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 	return nil, nil, errors.New("not found")
 }
 
-// Router is a http.HandlerFunc router that dispatches the request
+// RouterHandler is a http.HandlerFunc router that dispatches the request
 // based on saved routes and handlers
-func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
+func (s *SusaninRouter) RouterHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 
 	handler, values, err := s.Lookup(uri)
@@ -187,17 +185,6 @@ func (s *Susanin) Router(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handler(w, r)
-}
-
-// RouterHandler return an http.HandlerFunc with all attached middleware
-func (s *Susanin) RouterHandler() http.HandlerFunc {
-	return s.dispatchHandler.Handler(s.Router)
-}
-
-// AttachMiddleware adds middleware to the chain
-func (s *Susanin) AttachMiddleware(next MiddleWare) *Susanin {
-	s.dispatchHandler.Attach(next)
-	return s
 }
 
 // GetValues gets the match pattern values from the http.Request context

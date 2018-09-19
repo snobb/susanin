@@ -10,8 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"susanin/pkg/susanin"
-	"susanin/pkg/susanin/middleware"
+	"susanin/pkg/susanin/router"
 )
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +19,7 @@ func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
-	values, ok := susanin.GetValues(r)
+	values, ok := router.GetValues(r)
 	if !ok {
 		log.Println("Empty arguments")
 	}
@@ -34,7 +33,7 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 	w.WriteHeader(200)
 
-	values, ok := susanin.GetValues(r)
+	values, ok := router.GetValues(r)
 	if !ok {
 		log.Println("Empty arguments")
 	}
@@ -51,16 +50,14 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 
-	router := susanin.NewSusanin()
-	router.Handle("/home/*", homeHandler)
-	router.Handle("/short", homeHandler)
-	router.Handle("/hello/:fname/:lname/", helloHandler)
-	router.Handle("/hello/:fname/*", helloSplatHandler)
-	router.Handle("/*", fallbackHandler)
+	rt := router.NewSusaninRouter()
+	rt.Handle("/home/*", homeHandler)
+	rt.Handle("/short", homeHandler)
+	rt.Handle("/hello/:fname/:lname/", helloHandler)
+	rt.Handle("/hello/:fname/*", helloSplatHandler)
+	rt.Handle("/*", fallbackHandler)
 
-	router.AttachMiddleware(middleware.TimerMiddleware)
-
-	mux.HandleFunc("/", router.RouterHandler())
+	mux.HandleFunc("/", rt.RouterHandler)
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())
