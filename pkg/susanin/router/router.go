@@ -16,8 +16,8 @@ type valueKeyName string
 const valuesKey valueKeyName = "values"
 const rootLink = "#ROOT#"
 
-// SusaninRouter is a URI path router object
-type SusaninRouter struct {
+// Router is a URI path router object
+type Router struct {
 	root *chainLink
 }
 
@@ -40,15 +40,15 @@ func newChainLink(token string) *chainLink {
 	}
 }
 
-// NewSusaninRouter creates a new SusaninRouter instance
-func NewSusaninRouter() *SusaninRouter {
-	return &SusaninRouter{
+// NewRouter creates a new Router instance
+func NewRouter() *Router {
+	return &Router{
 		root: newChainLink(rootLink),
 	}
 }
 
 // Handle add a route and a handler
-func (s *SusaninRouter) Handle(path string, handler http.HandlerFunc) (err error) {
+func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
@@ -113,7 +113,7 @@ func (s *SusaninRouter) Handle(path string, handler http.HandlerFunc) (err error
 }
 
 // Lookup for a handler in the path, a handler, pattern values and error is returned.
-func (s *SusaninRouter) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
+func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -169,7 +169,7 @@ func (s *SusaninRouter) Lookup(path string) (http.HandlerFunc, map[string]string
 
 // RouterHandler is a http.HandlerFunc router that dispatches the request
 // based on saved routes and handlers
-func (s *SusaninRouter) RouterHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 
 	handler, values, err := s.Lookup(uri)
