@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 
+	"susanin/pkg/susanin/framework"
+	"susanin/pkg/susanin/middleware"
 	"susanin/pkg/susanin/router"
 )
 
@@ -50,14 +52,16 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 
-	rt := router.NewSusaninRouter()
-	rt.Handle("/home/*", homeHandler)
-	rt.Handle("/short", homeHandler)
-	rt.Handle("/hello/:fname/:lname/", helloHandler)
-	rt.Handle("/hello/:fname/*", helloSplatHandler)
-	rt.Handle("/*", fallbackHandler)
+	fw := framework.NewFramework()
+	fw.Get("/home/*", homeHandler)
+	fw.Get("/short", homeHandler)
+	fw.Get("/hello/:fname/:lname/", helloHandler)
+	fw.Get("/hello/:fname/*", helloSplatHandler)
+	fw.Get("/*", fallbackHandler)
 
-	mux.HandleFunc("/", rt.RouterHandler)
+	fw.AttachMiddleware(middleware.TimerMiddleware)
+
+	mux.HandleFunc("/", fw.Handler())
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())

@@ -29,9 +29,9 @@ func Test(t *testing.T) {
 	//special hook for gomega
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
-	g.Describe("SusaninRouter Handle method", func() {
+	g.Describe("Router Handle method", func() {
 		g.It("Should create a search chain for given path", func() {
-			s := NewSusaninRouter()
+			s := NewRouter()
 			s.Handle("/test/this/:uri", dummy)
 
 			cur := s.root
@@ -72,19 +72,19 @@ func Test(t *testing.T) {
 		})
 
 		g.It("Should return an error if splat is in the middle of the path", func() {
-			s := NewSusaninRouter()
+			s := NewRouter()
 			err := s.Handle("/test/*/hello", dummy)
 			Expect(err).NotTo(BeNil())
 		})
 
 		g.It("Should return an error if splat is in the middle of the path", func() {
-			s := NewSusaninRouter()
+			s := NewRouter()
 			err := s.Handle("/test/hello/*/*", dummy)
 			Expect(err).NotTo(BeNil())
 		})
 
 		g.It("Should return an error if different variable patterns set at the same level", func() {
-			s := NewSusaninRouter()
+			s := NewRouter()
 			err := s.Handle("/test/:param1/hello", dummy)
 			Expect(err).To(BeNil())
 
@@ -93,11 +93,11 @@ func Test(t *testing.T) {
 		})
 	})
 
-	g.Describe("SusaninRouter Lookup method", func() {
-		var s *SusaninRouter
+	g.Describe("Router Lookup method", func() {
+		var s *Router
 
 		g.Before(func() {
-			s = NewSusaninRouter()
+			s = NewRouter()
 			s.Handle("/hello/:name", dynamic)
 			s.Handle("/hello/:name/by-name", dynamic1)
 			s.Handle("/hello/*", splat)
@@ -170,9 +170,9 @@ func Test(t *testing.T) {
 	})
 
 	g.Describe("Test splat fallback", func() {
-		var s *SusaninRouter
+		var s *Router
 		g.Before(func() {
-			s = NewSusaninRouter()
+			s = NewRouter()
 			s.Handle("/short", static)
 			s.Handle("/*", splat)
 		})
@@ -197,9 +197,9 @@ func Test(t *testing.T) {
 	})
 
 	g.Describe("Test splat fallback after matching variable", func() {
-		var s *SusaninRouter
+		var s *Router
 		g.Before(func() {
-			s = NewSusaninRouter()
+			s = NewRouter()
 			s.Handle("/hello/:fname/:lname", static)
 			s.Handle("/hello/*", splat)
 		})
