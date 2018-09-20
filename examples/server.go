@@ -64,11 +64,17 @@ func main() {
 	fw.Get("/", homeHandler)
 	fw.Get("/home/*", homeHandler)
 	fw.Get("/short", homeHandler)
+	fw.Get("/test1", homeHandler)
+	fw.Get("/test2", homeHandler)
+	fw.Get("/test3", homeHandler)
+	fw.Get("/test4", homeHandler)
+	fw.Get("/test5", homeHandler)
 	fw.Get("/hello/:fname/:lname/", helloHandler)
 	fw.Get("/hello/:fname/*", helloSplatHandler)
 	fw.Get("/*", fallbackHandler)
 	fw.Post("/post/*", postHandler)
 
+	fw.AttachMiddleware(middleware.DebugMiddleware)
 	fw.AttachMiddleware(middleware.TimerMiddleware)
 
 	mux.HandleFunc("/", fw.Router())
