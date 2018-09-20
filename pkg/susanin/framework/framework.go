@@ -116,3 +116,10 @@ func (s *Framework) Delete(path string, handler http.HandlerFunc) {
 func (s *Framework) Patch(path string, handler http.HandlerFunc) {
 	s.handler(mPatch, path, handler)
 }
+
+// Clear clears all handlers for all methods
+func (s *Framework) Clear() {
+	for i := 0; i < mSize; i++ {
+		s.methods[i] = nil
+	}
+}

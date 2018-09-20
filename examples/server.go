@@ -21,27 +21,33 @@ func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	values, ok := router.GetValues(r)
-	if !ok {
+	var message string
+
+	if values, ok := router.GetValues(r); ok {
+		message = fmt.Sprintf("Hello %s %s\n",
+			strings.Title(values["fname"]), strings.Title(values["lname"]))
+	} else {
 		log.Println("Empty arguments")
+		message = "Hello!"
 	}
 
-	message := fmt.Sprintf("Hello %s %s\n",
-		strings.Title(values["fname"]), strings.Title(values["lname"]))
+	w.WriteHeader(200)
 	w.Write([]byte(message))
 }
 
 func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
-	uri := r.URL.Path
-	w.WriteHeader(200)
+	var message string
 
-	values, ok := router.GetValues(r)
-	if !ok {
+	uri := r.URL.Path
+
+	if values, ok := router.GetValues(r); ok {
+		message = fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
+	} else {
 		log.Println("Empty arguments")
+		message = fmt.Sprintf("Hello! [uri: %s]\n", uri)
 	}
 
-	message := fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
+	w.WriteHeader(200)
 	w.Write([]byte(message))
 }
 
