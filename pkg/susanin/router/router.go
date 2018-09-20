@@ -31,7 +31,7 @@ type chainLink struct {
 
 func newChainLink(token string) *chainLink {
 	// strip colon from variable name
-	if token[0] == ':' {
+	if len(token) > 0 && token[0] == ':' {
 		token = token[1:]
 	}
 
@@ -70,7 +70,7 @@ func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 
 	for _, token := range tokens {
 		switch {
-		case token[0] == ':': // variable
+		case len(token) > 0 && token[0] == ':': // variable
 			if cur.nextVar == nil {
 				cur.nextVar = newChainLink(token)
 			} else if token[1:] != cur.nextVar.name {

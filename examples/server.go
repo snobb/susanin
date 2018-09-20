@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -49,19 +50,28 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("home!!!\n"))
 }
 
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	bytes, _ := ioutil.ReadAll(r.Body)
+
+	w.WriteHeader(200)
+	w.Write([]byte(fmt.Sprintf("response: %v\n", string(bytes))))
+}
+
 func main() {
 	mux := http.NewServeMux()
 
 	fw := framework.NewFramework()
+	fw.Get("/", homeHandler)
 	fw.Get("/home/*", homeHandler)
 	fw.Get("/short", homeHandler)
 	fw.Get("/hello/:fname/:lname/", helloHandler)
 	fw.Get("/hello/:fname/*", helloSplatHandler)
 	fw.Get("/*", fallbackHandler)
+	fw.Post("/post/*", postHandler)
 
 	fw.AttachMiddleware(middleware.TimerMiddleware)
 
-	mux.HandleFunc("/", fw.Handler())
+	mux.HandleFunc("/", fw.Router())
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())

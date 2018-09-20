@@ -45,25 +45,13 @@ func error404(w http.ResponseWriter, msg string) {
 	http.Error(w, "invalid REST method", 404)
 }
 
-func (s *Framework) handler(method int, path string, handler http.HandlerFunc) (err error) {
+func (s *Framework) handler(method int, path string, handler http.HandlerFunc) error {
 	if s.methods[method] == nil {
 		s.methods[method] = router.NewRouter()
 	}
 
 	rt := s.methods[method]
-	err = rt.Handle(path, handler)
-
-	return
-}
-
-// Handler add the handler to the chain and get the resulting handler function
-func (s *Framework) Handler() http.HandlerFunc {
-	h := s.handlerFunc
-	for i := 0; i < len(s.stack); i++ {
-		h = s.stack[i](h)
-	}
-
-	return h
+	return rt.Handle(path, handler)
 }
 
 func (s *Framework) handlerFunc(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +80,16 @@ func (s *Framework) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rt.RouterHandler(w, r)
+}
+
+// Router combines the chain and returns the resulting handler function
+func (s *Framework) Router() http.HandlerFunc {
+	h := s.handlerFunc
+	for i := 0; i < len(s.stack); i++ {
+		h = s.stack[i](h)
+	}
+
+	return h
 }
 
 // Get adds handler for GET requests
