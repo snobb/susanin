@@ -10,18 +10,20 @@ import (
 	"runtime"
 	"testing"
 
+	"susanin/pkg/susanin/helpers"
+
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
 
-func dummy(w http.ResponseWriter, r *http.Request)    {}
-func dynamic(w http.ResponseWriter, r *http.Request)  {}
-func dynamic1(w http.ResponseWriter, r *http.Request) {}
-func static(w http.ResponseWriter, r *http.Request)   {}
-func static1(w http.ResponseWriter, r *http.Request)  {}
-func static2(w http.ResponseWriter, r *http.Request)  {}
-func byName(w http.ResponseWriter, r *http.Request)   {}
-func splat(w http.ResponseWriter, r *http.Request)    {}
+var dummy http.HandlerFunc = helpers.HandlerFactory(200, "dummy")
+var dynamic http.HandlerFunc = helpers.HandlerFactory(200, "dynamic")
+var dynamic1 http.HandlerFunc = helpers.HandlerFactory(200, "dynamic1")
+var static http.HandlerFunc = helpers.HandlerFactory(200, "static")
+var static1 http.HandlerFunc = helpers.HandlerFactory(200, "static1")
+var static2 http.HandlerFunc = helpers.HandlerFactory(200, "static2")
+var byName http.HandlerFunc = helpers.HandlerFactory(200, "byName")
+var splat http.HandlerFunc = helpers.HandlerFactory(200, "splat")
 
 func Test(t *testing.T) {
 	g := Goblin(t)
