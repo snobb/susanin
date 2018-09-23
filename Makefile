@@ -1,7 +1,7 @@
 TARGET := susanin
 EXAMPLESRC := ./examples
 
-all: fmt vet build
+all: fmt vet test
 
 vet:
 	go vet ./...
@@ -11,9 +11,6 @@ fmt:
 
 test:
 	go test -cover ./...
-
-build:
-	go install ./pkg/${TARGET}
 
 examples: vet fmt
 	go build -o ./bin/${TARGET} ${EXAMPLESRC}
