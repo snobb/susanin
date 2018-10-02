@@ -7,7 +7,7 @@ package framework
 import (
 	"net/http"
 
-	"susanin/pkg/susanin/router"
+	"github.com/snobb/susanin-http-router/pkg/router"
 )
 
 const (

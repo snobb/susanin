@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"testing"
 
-	"susanin/pkg/susanin/helpers"
+	"github.com/snobb/susanin-http-router/pkg/helpers"
 
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
@@ -25,7 +25,7 @@ var static2 http.HandlerFunc = helpers.HandlerFactory(200, "static2")
 var byName http.HandlerFunc = helpers.HandlerFactory(200, "byName")
 var splat http.HandlerFunc = helpers.HandlerFactory(200, "splat")
 
-func Test(t *testing.T) {
+func TestRouter(t *testing.T) {
 	g := Goblin(t)
 
 	//special hook for gomega

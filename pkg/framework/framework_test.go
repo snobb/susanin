@@ -12,14 +12,14 @@ import (
 	"strings"
 	"testing"
 
-	"susanin/pkg/susanin/helpers"
-	"susanin/pkg/susanin/router"
+	"github.com/snobb/susanin-http-router/pkg/helpers"
+	"github.com/snobb/susanin-http-router/pkg/router"
 
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
 
-func TestHelloWorld(t *testing.T) {
+func TestFrameWork(t *testing.T) {
 	g := Goblin(t)
 
 	//special hook for gomega
