@@ -83,7 +83,7 @@ func main() {
 	fw.AttachMiddleware(middleware.DebugMiddleware)
 	fw.AttachMiddleware(middleware.TimerMiddleware)
 
-	mux.HandleFunc("/", fw.Router())
+	mux.Handle("/", fw.Router())
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())

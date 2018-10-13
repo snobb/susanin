@@ -11,11 +11,11 @@ import (
 )
 
 // TimerMiddleware adds time counting
-func TimerMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func TimerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		log.Printf("accepting a request [uri: %s]", r.URL.Path)
-		next(w, r)
+		next.ServeHTTP(w, r)
 		log.Printf("elapsed time %v\n", time.Since(start))
-	}
+	})
 }

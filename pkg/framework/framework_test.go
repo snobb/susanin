@@ -90,8 +90,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("root"))
 		})
 
@@ -101,8 +101,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("short"))
 		})
 
@@ -112,8 +112,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("home"))
 		})
 
@@ -123,8 +123,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("john doe"))
 		})
 
@@ -134,8 +134,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("john doe"))
 		})
 
@@ -146,8 +146,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("HELLO WORLD"))
 		})
 
@@ -157,8 +157,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("not found\n"))
 		})
 
@@ -169,8 +169,8 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := http.HandlerFunc(s.Router())
-			handler(rr, req)
+			handler := s.Router()
+			handler.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("fallback"))
 		})
 	})
