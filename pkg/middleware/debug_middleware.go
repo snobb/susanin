@@ -19,8 +19,8 @@ type debugResponseWriter struct {
 }
 
 // DebugMiddleware adds logging of HTTP protocol information
-func DebugMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func DebugMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("<<<< %s %s %s", r.Method, r.URL.Path, r.Proto)
 		for name, values := range r.Header {
 			log.Printf(" %s : %v", name, values)
@@ -28,7 +28,7 @@ func DebugMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			next(w, r)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -45,7 +45,7 @@ func DebugMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		rec := httptest.NewRecorder()
-		next(rec, r)
+		next.ServeHTTP(rec, r)
 
 		body = rec.Body.Bytes()
 		for name, values := range rec.Header() {
@@ -71,5 +71,5 @@ func DebugMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				}
 			}
 		}
-	}
+	})
 }

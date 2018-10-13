@@ -20,7 +20,7 @@ const (
 )
 
 // Middleware is a type for Middleware function
-type Middleware func(http.HandlerFunc) http.HandlerFunc
+type Middleware func(http.Handler) http.Handler
 
 // Framework is a web framework main data structure
 type Framework struct {
@@ -36,8 +36,8 @@ func NewFramework() *Framework {
 }
 
 // AttachMiddleware adds middleware to the chain
-func (s *Framework) AttachMiddleware(next Middleware) *Framework {
-	s.stack = append(s.stack, next)
+func (s *Framework) AttachMiddleware(middlewares ...Middleware) *Framework {
+	s.stack = append(s.stack, middlewares...)
 	return s
 }
 
@@ -54,7 +54,7 @@ func (s *Framework) handler(method int, path string, handler http.HandlerFunc) e
 	return rt.Handle(path, handler)
 }
 
-func (s *Framework) handlerFunc(w http.ResponseWriter, r *http.Request) {
+func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 	var method int
 
 	switch r.Method {
@@ -83,8 +83,8 @@ func (s *Framework) handlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 // Router combines the chain and returns the resulting handler function
-func (s *Framework) Router() http.HandlerFunc {
-	h := s.handlerFunc
+func (s *Framework) Router() http.Handler {
+	var h http.Handler = http.HandlerFunc(s.dispatch)
 	for i := 0; i < len(s.stack); i++ {
 		h = s.stack[i](h)
 	}

@@ -60,7 +60,7 @@ func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 	}
 
 	// clear trailing slash so that it matches /path and /path/
-	if path[len(path)-1] == '/' {
+	if len(path) > 0 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
 
@@ -119,7 +119,7 @@ func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error
 	}
 
 	// clear trailing slash so that it matches /path and /path/
-	if path[len(path)-1] == '/' {
+	if len(path) > 0 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
 
