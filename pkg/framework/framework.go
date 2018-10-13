@@ -6,8 +6,6 @@ package framework
 
 import (
 	"net/http"
-
-	"github.com/snobb/susanin-http-router/pkg/router"
 )
 
 const (
@@ -24,7 +22,7 @@ type Middleware func(http.Handler) http.Handler
 
 // Framework is a web framework main data structure
 type Framework struct {
-	methods [mSize]*router.Router
+	methods [mSize]*Router
 	stack   []Middleware
 }
 
@@ -35,8 +33,8 @@ func NewFramework() *Framework {
 	}
 }
 
-// AttachMiddleware adds middleware to the chain
-func (s *Framework) AttachMiddleware(middlewares ...Middleware) *Framework {
+// Attach adds middleware to the chain
+func (s *Framework) Attach(middlewares ...Middleware) *Framework {
 	s.stack = append(s.stack, middlewares...)
 	return s
 }
@@ -47,7 +45,7 @@ func error404(w http.ResponseWriter, msg string) {
 
 func (s *Framework) handler(method int, path string, handler http.HandlerFunc) error {
 	if s.methods[method] == nil {
-		s.methods[method] = router.NewRouter()
+		s.methods[method] = NewRouter()
 	}
 
 	rt := s.methods[method]

@@ -13,7 +13,6 @@ import (
 
 	"github.com/snobb/susanin-http-router/pkg/framework"
 	"github.com/snobb/susanin-http-router/pkg/middleware"
-	"github.com/snobb/susanin-http-router/pkg/router"
 )
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +22,7 @@ func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	var message string
 
-	if values, ok := router.GetValues(r); ok {
+	if values, ok := framework.GetValues(r); ok {
 		message = fmt.Sprintf("Hello %s %s\n",
 			strings.Title(values["fname"]), strings.Title(values["lname"]))
 	} else {
@@ -40,7 +39,7 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 
 	uri := r.URL.Path
 
-	if values, ok := router.GetValues(r); ok {
+	if values, ok := framework.GetValues(r); ok {
 		message = fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
 	} else {
 		log.Println("Empty arguments")
@@ -80,8 +79,8 @@ func main() {
 	fw.Get("/*", fallbackHandler)
 	fw.Post("/post/*", postHandler)
 
-	fw.AttachMiddleware(middleware.DebugMiddleware)
-	fw.AttachMiddleware(middleware.TimerMiddleware)
+	fw.Attach(middleware.DebugMiddleware)
+	fw.Attach(middleware.TimerMiddleware)
 
 	mux.Handle("/", fw.Router())
 	err := http.ListenAndServe(":8080", mux)
