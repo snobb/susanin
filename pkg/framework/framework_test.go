@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/snobb/susanin-http-router/pkg/router"
 	"github.com/snobb/susanin-http-router/pkg/test"
 
 	. "github.com/franela/goblin"
@@ -65,7 +64,7 @@ func TestFrameWork(t *testing.T) {
 			s.Get("/home/*", test.HandlerFactory(200, "home"))
 
 			s.Get("/hello/:fname/:lname/", func(w http.ResponseWriter, r *http.Request) {
-				values, ok := router.GetValues(r)
+				values, ok := GetValues(r)
 				Expect(ok).To(BeTrue())
 				message := fmt.Sprintf("%s %s", values["fname"], values["lname"])
 
