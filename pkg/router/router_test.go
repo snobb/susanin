@@ -10,20 +10,20 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/snobb/susanin-http-router/pkg/helpers"
+	"github.com/snobb/susanin-http-router/pkg/test"
 
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
 
-var dummy http.HandlerFunc = helpers.HandlerFactory(200, "dummy")
-var dynamic http.HandlerFunc = helpers.HandlerFactory(200, "dynamic")
-var dynamic1 http.HandlerFunc = helpers.HandlerFactory(200, "dynamic1")
-var static http.HandlerFunc = helpers.HandlerFactory(200, "static")
-var static1 http.HandlerFunc = helpers.HandlerFactory(200, "static1")
-var static2 http.HandlerFunc = helpers.HandlerFactory(200, "static2")
-var byName http.HandlerFunc = helpers.HandlerFactory(200, "byName")
-var splat http.HandlerFunc = helpers.HandlerFactory(200, "splat")
+var dummy http.HandlerFunc = test.HandlerFactory(200, "dummy")
+var dynamic http.HandlerFunc = test.HandlerFactory(200, "dynamic")
+var dynamic1 http.HandlerFunc = test.HandlerFactory(200, "dynamic1")
+var static http.HandlerFunc = test.HandlerFactory(200, "static")
+var static1 http.HandlerFunc = test.HandlerFactory(200, "static1")
+var static2 http.HandlerFunc = test.HandlerFactory(200, "static2")
+var byName http.HandlerFunc = test.HandlerFactory(200, "byName")
+var splat http.HandlerFunc = test.HandlerFactory(200, "splat")
 
 func TestRouter(t *testing.T) {
 	g := Goblin(t)
