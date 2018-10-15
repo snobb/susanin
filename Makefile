@@ -19,4 +19,4 @@ clean:
 	go clean ./...
 	-rm -rf bin
 
-.PHONY: build clean vet
+.PHONY: build clean vet test
