@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/snobb/susanin-http-router/pkg/test"
+	"github.com/snobb/susanin/internal/test"
 
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"

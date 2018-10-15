@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/snobb/susanin-http-router/pkg/framework"
-	"github.com/snobb/susanin-http-router/pkg/middleware"
+	"github.com/snobb/susanin/pkg/framework"
+	"github.com/snobb/susanin/pkg/middleware"
 )
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
