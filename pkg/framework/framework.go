@@ -14,6 +14,8 @@ const (
 	mPost
 	mDelete
 	mPatch
+	mHead
+	mOptions
 	mSize
 )
 
@@ -40,7 +42,7 @@ func (s *Framework) Attach(middlewares ...Middleware) *Framework {
 }
 
 func error404(w http.ResponseWriter, msg string) {
-	http.Error(w, "invalid REST method", 404)
+	http.Error(w, msg, 404)
 }
 
 func (s *Framework) handler(method int, path string, handler http.HandlerFunc) error {
@@ -56,16 +58,27 @@ func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 	var method int
 
 	switch r.Method {
-	case "GET":
+	case http.MethodGet:
 		method = mGet
-	case "PUT":
+
+	case http.MethodPut:
 		method = mPut
-	case "POST":
+
+	case http.MethodPost:
 		method = mPost
-	case "DELETE":
+
+	case http.MethodDelete:
 		method = mDelete
-	case "PATCH":
+
+	case http.MethodPatch:
 		method = mPatch
+
+	case http.MethodHead:
+		method = mHead
+
+	case http.MethodOptions:
+		method = mOptions
+
 	default:
 		error404(w, "Invalid REST method")
 		return
@@ -113,6 +126,16 @@ func (s *Framework) Delete(path string, handler http.HandlerFunc) {
 // Patch adds handler for PATCH requests
 func (s *Framework) Patch(path string, handler http.HandlerFunc) {
 	s.handler(mPatch, path, handler)
+}
+
+// Head adds handler for PATCH requests
+func (s *Framework) Head(path string, handler http.HandlerFunc) {
+	s.handler(mHead, path, handler)
+}
+
+// Options adds handler for PATCH requests
+func (s *Framework) Options(path string, handler http.HandlerFunc) {
+	s.handler(mOptions, path, handler)
 }
 
 // Clear clears all handlers for all methods
