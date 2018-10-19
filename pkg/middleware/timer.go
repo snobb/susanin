@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// TimerMiddleware adds time counting
-func TimerMiddleware(next http.Handler) http.Handler {
+// Timer adds time counting
+func Timer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		log.Printf("accepting a request [uri: %s]", r.URL.Path)
