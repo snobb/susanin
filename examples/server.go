@@ -79,8 +79,10 @@ func main() {
 	fw.Get("/*", fallbackHandler)
 	fw.Post("/post/*", postHandler)
 
-	fw.Attach(middleware.DebugMiddleware)
-	fw.Attach(middleware.TimerMiddleware)
+	fw.Attach(middleware.Debug)
+	fw.Attach(middleware.RequestLogger)
+	fw.Attach(middleware.ResponseLogger)
+	fw.Attach(middleware.Timer)
 
 	mux.Handle("/", fw.Router())
 	err := http.ListenAndServe(":8080", mux)

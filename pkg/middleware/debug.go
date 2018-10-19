@@ -18,8 +18,8 @@ type debugResponseWriter struct {
 	buf *bytes.Buffer
 }
 
-// DebugMiddleware adds logging of HTTP protocol information
-func DebugMiddleware(next http.Handler) http.Handler {
+// Debug adds logging of HTTP protocol information
+func Debug(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("<<<< %s %s %s", r.Method, r.URL.Path, r.Proto)
 		for name, values := range r.Header {
@@ -64,12 +64,13 @@ func DebugMiddleware(next http.Handler) http.Handler {
 		}
 
 		if len(body) > 0 {
-			log.Printf(" << Body [content-length: %d]", len(body))
+			log.Printf(" == Body [content-length: %d] ==", len(body))
 			for _, line := range strings.Split(string(body), "\n") {
 				if len(line) > 0 {
 					log.Printf(" %s", line)
 				}
 			}
+			log.Printf(" =============================== ")
 		}
 	})
 }
