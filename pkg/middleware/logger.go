@@ -27,14 +27,23 @@ func RequestLogger(next http.Handler) http.Handler {
 				panic(err)
 			}
 
-			var jsonBody map[string]interface{}
-			if err := json.Unmarshal(body, &jsonBody); err != nil {
-				panic(err)
-			}
-
 			// setting the body back for futher processing
 			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-			fields["body"] = jsonBody
+
+			if hdr, ok := r.Header["Content-Type"]; ok && hdr[0] == "application/json" {
+				var jsonBody map[string]interface{}
+
+				if err := json.Unmarshal(body, &jsonBody); err != nil {
+					w.WriteHeader(400)
+					w.Write([]byte("JSON expected"))
+					return
+				}
+
+				fields["body"] = jsonBody
+
+			} else {
+				fields["body"] = string(body)
+			}
 		}
 
 		out, err := json.Marshal(fields)
@@ -52,7 +61,6 @@ func RequestLogger(next http.Handler) http.Handler {
 func ResponseLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wbuf := newResponseBuffer(w)
-
 		next.ServeHTTP(wbuf, r)
 
 		body := wbuf.Body.Bytes()
@@ -61,8 +69,11 @@ func ResponseLogger(next http.Handler) http.Handler {
 
 		if hdr, ok := w.Header()["Content-Type"]; ok && hdr[0] == "application/json" {
 			if err := json.Unmarshal(body, &normBody); err != nil {
-				panic(err)
+				w.WriteHeader(400)
+				w.Write([]byte("JSON Expected"))
+				return
 			}
+
 		} else {
 			normBody = string(body)
 		}
