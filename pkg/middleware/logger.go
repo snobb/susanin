@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -60,6 +61,7 @@ func RequestLogger(next http.Handler) http.Handler {
 // ResponseLogger middleware
 func ResponseLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 		wbuf := newResponseBuffer(w)
 		next.ServeHTTP(wbuf, r)
 
@@ -84,6 +86,7 @@ func ResponseLogger(next http.Handler) http.Handler {
 			"type":    "response",
 			"headers": wbuf.Header(),
 			"body":    normBody,
+			"elapsed": fmt.Sprintf("%v", time.Since(start)),
 		}
 
 		out, err := json.Marshal(fields)
