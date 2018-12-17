@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/snobb/susanin/internal/test"
+	"github.com/snobb/susanin/test/helper"
 
 	. "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
@@ -27,7 +27,7 @@ func TestFrameWork(t *testing.T) {
 	g.Describe("Generic framework", func() {
 		g.It("should test route binding", func() {
 			f := NewFramework()
-			dummy := test.HandlerFactory(200, "dummy")
+			dummy := helper.HandlerFactory(200, "dummy")
 
 			Expect(f.methods[mGet]).To(BeNil())
 			Expect(f.methods[mPut]).To(BeNil())
@@ -59,9 +59,9 @@ func TestFrameWork(t *testing.T) {
 
 		g.Before(func() {
 			s = NewFramework()
-			s.Get("/", test.HandlerFactory(200, "root"))
-			s.Get("/short", test.HandlerFactory(200, "short"))
-			s.Get("/home/*", test.HandlerFactory(200, "home"))
+			s.Get("/", helper.HandlerFactory(200, "root"))
+			s.Get("/short", helper.HandlerFactory(200, "short"))
+			s.Get("/home/*", helper.HandlerFactory(200, "home"))
 
 			s.Get("/hello/:fname/:lname/", func(w http.ResponseWriter, r *http.Request) {
 				values, ok := GetValues(r)
@@ -162,7 +162,7 @@ func TestFrameWork(t *testing.T) {
 		})
 
 		g.It("should route to the fallback handler", func() {
-			s.Get("/*", test.HandlerFactory(200, "fallback"))
+			s.Get("/*", helper.HandlerFactory(200, "fallback"))
 			req, err := http.NewRequest("GET", "/does/not/exist", nil)
 			if err != nil {
 				t.Fatal(err)

@@ -86,7 +86,7 @@ func ResponseLogger(next http.Handler) http.Handler {
 			"type":    "response",
 			"headers": wbuf.Header(),
 			"body":    normBody,
-			"elapsed": fmt.Sprintf("%v", time.Since(start)),
+			"elapsed": fmt.Sprintf("%d", time.Since(start)),
 		}
 
 		out, err := json.Marshal(fields)
