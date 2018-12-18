@@ -1,3 +1,5 @@
+include git.mk
+
 TARGET := susanin
 EXAMPLESRC := ./examples
 
