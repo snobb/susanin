@@ -23,22 +23,26 @@ func HandlerFactory(code int, message string) http.HandlerFunc {
 // This is useful when mocking log.* function.
 func ParseAllJSONLog(buf *bytes.Buffer) (data []map[string]interface{}, err error) {
 	str := buf.String()
-	line := 0
+	begin := 0
 
-	for line < buf.Len() {
-		begin := strings.IndexRune(str, '{')
-		end := strings.IndexAny(str, "\n\r")
+	for begin < len(str) {
+		for begin < len(str) && str[begin] != '{' {
+			begin++
+		}
+
+		end := begin + 1
+		for end < len(str) && str[end] != '\n' && str[end] != '\r' {
+			end++
+		}
 
 		row := make(map[string]interface{})
-		err = json.Unmarshal(buf.Bytes()[line+begin:line+end], &row)
+		err = json.Unmarshal(buf.Bytes()[begin:end], &row)
 		if err != nil {
 			return
 		}
-
 		data = append(data, row)
 
-		str = str[end+1:]
-		line += end + 1
+		begin = end + 1
 	}
 
 	return
