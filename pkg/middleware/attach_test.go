@@ -3,12 +3,12 @@ package middleware_test
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/snobb/susanin/pkg/framework"
+	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware"
 	"github.com/snobb/susanin/test/helper"
 	"github.com/franela/goblin"
@@ -23,15 +23,16 @@ func TestAttach(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s   *framework.Framework
-			buf bytes.Buffer
-			req *http.Request
-			rr  *httptest.ResponseRecorder
-			err error
+			s      *framework.Framework
+			buf    bytes.Buffer
+			logger logging.Logger
+			req    *http.Request
+			rr     *httptest.ResponseRecorder
+			err    error
 		)
 
 		g.Before(func() {
-			log.SetOutput(&buf)
+			logger = logging.New("attach", &buf)
 			s = framework.NewFramework()
 		})
 
@@ -43,7 +44,8 @@ func TestAttach(t *testing.T) {
 			g.Before(func() {
 				handler := http.Handler(helper.HandlerFactory(200, "root"))
 				mwHandler := middleware.Attach(handler,
-					middleware.RequestLogger, middleware.ResponseLogger)
+					middleware.RequestLogger(logger),
+					middleware.ResponseLogger(logger))
 				s.Get("/*", http.HandlerFunc(mwHandler))
 			})
 

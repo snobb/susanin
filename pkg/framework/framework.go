@@ -6,6 +6,8 @@ package framework
 
 import (
 	"net/http"
+
+	"github.com/snobb/susanin/pkg/middleware"
 )
 
 const (
@@ -19,33 +21,30 @@ const (
 	mSize
 )
 
-// Middleware is a type for Middleware function
-type Middleware func(http.Handler) http.Handler
-
 // Framework is a web framework main data structure
 type Framework struct {
 	prefix  string
 	methods [mSize]*Router
-	stack   []Middleware
+	stack   []middleware.Middleware
 }
 
 // NewFramework is the Framework constructor
 func NewFramework() *Framework {
 	return &Framework{
-		stack: make([]Middleware, 0),
+		stack: make([]middleware.Middleware, 0),
 	}
 }
 
-// NewFramework is the Framework constructor
+// NewFrameworkWithPrefix is the Framework constructor
 func NewFrameworkWithPrefix(prefix string) *Framework {
 	return &Framework{
-		stack:  make([]Middleware, 0),
+		stack:  make([]middleware.Middleware, 0),
 		prefix: prefix,
 	}
 }
 
 // Attach adds middleware to the chain
-func (s *Framework) Attach(middlewares ...Middleware) *Framework {
+func (s *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 	s.stack = append(s.stack, middlewares...)
 	return s
 }

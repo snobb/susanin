@@ -3,13 +3,14 @@ package middleware_test
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/snobb/susanin/pkg/framework"
+	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware"
 	"github.com/snobb/susanin/test/helper"
 	"github.com/franela/goblin"
@@ -24,15 +25,16 @@ func TestLogger(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s   *framework.Framework
-			buf bytes.Buffer
-			req *http.Request
-			rr  *httptest.ResponseRecorder
-			err error
+			s      *framework.Framework
+			buf    bytes.Buffer
+			req    *http.Request
+			logger logging.Logger
+			rr     *httptest.ResponseRecorder
+			err    error
 		)
 
 		g.Before(func() {
-			log.SetOutput(&buf)
+			logger = logging.New("logger", &buf)
 			s = framework.NewFramework()
 		})
 
@@ -42,7 +44,7 @@ func TestLogger(t *testing.T) {
 
 		g.Describe("RequestLogger middleware", func() {
 			g.Before(func() {
-				s.Attach(middleware.RequestLogger)
+				s.Attach(middleware.RequestLogger(logger))
 				s.Get("/*", helper.HandlerFactory(200, "root"))
 				s.Post("/*", helper.HandlerFactory(200, "root"))
 			})
@@ -63,12 +65,17 @@ func TestLogger(t *testing.T) {
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(len(fields)).To(Equal(6))
+				Expect(len(fields)).To(Equal(9))
 				Expect(fields).To(HaveKey("time"))
+				Expect(fields).To(HaveKey("headers"))
 				Expect(fields).To(HaveKeyWithValue("type", "request"))
 				Expect(fields).To(HaveKeyWithValue("method", "GET"))
 				Expect(fields).To(HaveKeyWithValue("uri", "/foo/bar"))
 				Expect(fields).To(HaveKeyWithValue("proto", "HTTP/1.1"))
+
+				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
+				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
 
 			g.It("Should log the POST request with JSON body successfully", func() {
@@ -82,7 +89,7 @@ func TestLogger(t *testing.T) {
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(len(fields)).To(Equal(7))
+				Expect(len(fields)).To(Equal(10))
 				Expect(fields).To(HaveKey("time"))
 				Expect(fields).To(HaveKeyWithValue("type", "request"))
 				Expect(fields).To(HaveKeyWithValue("method", "POST"))
@@ -95,6 +102,10 @@ func TestLogger(t *testing.T) {
 				hdrs := fields["headers"].(map[string]interface{})
 				Expect(hdrs).To(HaveKey("Content-Type"))
 				Expect(hdrs["Content-Type"].([]interface{})[0]).To(Equal("application/json"))
+
+				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
+				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
 
 			g.It("Should log the POST request with body successfully", func() {
@@ -107,20 +118,24 @@ func TestLogger(t *testing.T) {
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(len(fields)).To(Equal(7))
+				Expect(len(fields)).To(Equal(10))
 				Expect(fields).To(HaveKey("time"))
 				Expect(fields).To(HaveKeyWithValue("type", "request"))
 				Expect(fields).To(HaveKeyWithValue("method", "POST"))
 				Expect(fields).To(HaveKeyWithValue("uri", "/foo/bar"))
 				Expect(fields).To(HaveKeyWithValue("proto", "HTTP/1.1"))
 				Expect(fields).To(HaveKeyWithValue("body", "foo"))
+
+				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
+				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
 		})
 
 		g.Describe("ResponseLogger middleware", func() {
 			g.Before(func() {
 				s = framework.NewFramework()
-				s.Attach(middleware.ResponseLogger)
+				s.Attach(middleware.ResponseLogger(logger))
 				s.Get("/*", helper.HandlerFactory(200, "root"))
 				s.Post("/*", helper.HandlerFactory(200, "root"))
 			})
@@ -141,12 +156,16 @@ func TestLogger(t *testing.T) {
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(len(fields)).To(Equal(6))
+				Expect(len(fields)).To(Equal(9))
 				Expect(fields).To(HaveKey("time"))
 				Expect(fields).To(HaveKeyWithValue("type", "response"))
-				Expect(fields).To(HaveKeyWithValue("elapsed", BeAssignableToTypeOf("string")))
+				Expect(fields).To(HaveKeyWithValue("elapsed", BeNumerically(">", 100)))
 				Expect(fields).To(HaveKeyWithValue("status", float64(200)))
 				Expect(fields).To(HaveKeyWithValue("body", "root"))
+
+				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
+				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
 		})
 	})

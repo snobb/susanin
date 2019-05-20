@@ -3,13 +3,13 @@ package middleware_test
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"os"
 	"testing"
 
 	"github.com/snobb/susanin/pkg/framework"
+	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware"
 	"github.com/snobb/susanin/test/helper"
 	"github.com/franela/goblin"
@@ -24,15 +24,16 @@ func TestTimer(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s   *framework.Framework
-			buf bytes.Buffer
-			req *http.Request
-			rr  *httptest.ResponseRecorder
-			err error
+			s      *framework.Framework
+			buf    bytes.Buffer
+			req    *http.Request
+			logger logging.Logger
+			rr     *httptest.ResponseRecorder
+			err    error
 		)
 
 		g.Before(func() {
-			log.SetOutput(&buf)
+			logger = logging.New("timer", &buf)
 			s = framework.NewFramework()
 		})
 
@@ -42,7 +43,7 @@ func TestTimer(t *testing.T) {
 
 		g.Describe("Timer middleware", func() {
 			g.Before(func() {
-				s.Attach(middleware.Timer)
+				s.Attach(middleware.Timer(logger))
 				s.Get("/*", helper.HandlerFactory(200, "root"))
 			})
 
@@ -59,16 +60,22 @@ func TestTimer(t *testing.T) {
 				handler := s.Router()
 				handler.ServeHTTP(rr, req)
 
-				bufString := buf.String()
+				lines, err := helper.ParseAllJSONLog(&buf)
+				Expect(err).To(BeNil())
 
-				idx := strings.Index(bufString, "accepting a request")
-				Expect(idx).To(Equal(20))
+				Expect(lines[0]).To(HaveKeyWithValue("level", "info"))
+				Expect(lines[0]).To(HaveKeyWithValue("name", "TIMER"))
+				Expect(lines[0]).To(HaveKey("time"))
+				Expect(lines[0]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
+				Expect(lines[0]).To(HaveKeyWithValue("uri", "/foo/bar"))
+				Expect(lines[0]).To(HaveKeyWithValue("msg", "accepted connection"))
 
-				idx = strings.Index(bufString, "/foo/bar")
-				Expect(idx).To(Equal(46))
-
-				idx = strings.Index(bufString, "elapsed time")
-				Expect(idx).To(Equal(76))
+				Expect(lines[1]).To(HaveKeyWithValue("level", "info"))
+				Expect(lines[1]).To(HaveKeyWithValue("name", "TIMER"))
+				Expect(lines[1]).To(HaveKey("time"))
+				Expect(lines[1]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
+				Expect(lines[1]).To(HaveKeyWithValue("elapsed", BeNumerically(">", 100)))
+				Expect(lines[1]).To(HaveKey("elapsed_str"))
 			})
 		})
 	})
