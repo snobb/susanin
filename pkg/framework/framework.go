@@ -24,6 +24,7 @@ type Middleware func(http.Handler) http.Handler
 
 // Framework is a web framework main data structure
 type Framework struct {
+	prefix  string
 	methods [mSize]*Router
 	stack   []Middleware
 }
@@ -32,6 +33,14 @@ type Framework struct {
 func NewFramework() *Framework {
 	return &Framework{
 		stack: make([]Middleware, 0),
+	}
+}
+
+// NewFramework is the Framework constructor
+func NewFrameworkWithPrefix(prefix string) *Framework {
+	return &Framework{
+		stack:  make([]Middleware, 0),
+		prefix: prefix,
 	}
 }
 
@@ -51,7 +60,7 @@ func (s *Framework) handler(method int, path string, handler http.HandlerFunc) e
 	}
 
 	rt := s.methods[method]
-	return rt.Handle(path, handler)
+	return rt.Handle(s.prefix+path, handler)
 }
 
 func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
