@@ -65,7 +65,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 
-	fw := framework.NewFramework()
+	fw := framework.NewFrameworkWithPrefix("/api/v1")
 	fw.Get("/", homeHandler)
 	fw.Get("/home/*", homeHandler)
 	fw.Get("/short", homeHandler)
