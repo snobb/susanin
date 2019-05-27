@@ -17,7 +17,7 @@ merge-gitlab: expect-master
 		git merge $(BRANCH) && \
 		sed $(SED_OPT) 's|github.com/snobb/susanin|gitlab.com/snobb/susanin|' ./pkg/*/*.go ./examples/*.go go.mod README.md && \
 		git commit -m 'merging to gitlab' -a && \
-		git push gitlab gitlab && \
+		git push gitlab gitlab -f && \
 		git checkout master && \
 		[ $$STASH -eq 1 ] && git stash pop
 
@@ -27,7 +27,7 @@ merge-github: expect-master
 		git merge $(BRANCH) && \
 		sed $(SED_OPT) 's|github.com/snobb/susanin|github.com/snobb/susanin|' ./pkg/*/*.go ./examples/*.go go.mod README.md && \
 		git commit -m 'merging to github' -a && \
-		git push github github && \
+		git push github github -f && \
 		git checkout master && \
 		[ $$STASH -eq 1 ] && git stash pop
 
