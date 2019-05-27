@@ -1,4 +1,4 @@
-package framework
+package framework_test
 
 /**
  * @author: Alex Kozadaev
@@ -10,8 +10,10 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/test/helper"
-	. "github.com/franela/goblin"
+
+	"github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
 
@@ -25,67 +27,26 @@ var byName http.HandlerFunc = helper.HandlerFactory(200, "byName")
 var splat http.HandlerFunc = helper.HandlerFactory(200, "splat")
 
 func TestRouter(t *testing.T) {
-	g := Goblin(t)
+	g := goblin.Goblin(t)
 
 	//special hook for gomega
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Router Handle method", func() {
-		g.It("Should create a search chain for given path", func() {
-			s := NewRouter()
-			s.Handle("/test/this/:uri", dummy)
-
-			cur := s.root
-			Expect(cur.nextConst).NotTo(BeNil())
-			cur, ok := cur.nextConst["test"]
-			Expect(ok).To(BeTrue())
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("test"))
-
-			cur, ok = cur.nextConst["this"]
-			Expect(ok).To(BeTrue())
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("this"))
-
-			cur = cur.nextVar
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("uri"))
-
-			s.Handle("/hello/*", dummy)
-			cur, ok = s.root.nextConst["hello"]
-			Expect(ok).To(BeTrue())
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("hello"))
-
-			Expect(cur.nextSplat).NotTo(BeNil())
-			cur = cur.nextSplat
-			Expect(ok).To(BeTrue())
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("*"))
-			Expect(cur.handler).NotTo(BeNil())
-
-			s.Handle("/test/this/:uri/test", dummy)
-			cur = s.root.nextConst["test"].nextConst["this"].nextVar
-			cur, ok = cur.nextConst["test"]
-			Expect(ok).To(BeTrue())
-			Expect(cur).NotTo(BeNil())
-			Expect(cur.name).To(Equal("test"))
-		})
-
 		g.It("Should return an error if splat is in the middle of the path", func() {
-			s := NewRouter()
+			s := framework.NewRouter()
 			err := s.Handle("/test/*/hello", dummy)
 			Expect(err).NotTo(BeNil())
 		})
 
 		g.It("Should return an error if splat is in the middle of the path", func() {
-			s := NewRouter()
+			s := framework.NewRouter()
 			err := s.Handle("/test/hello/*/*", dummy)
 			Expect(err).NotTo(BeNil())
 		})
 
 		g.It("Should return an error if different variable patterns set at the same level", func() {
-			s := NewRouter()
+			s := framework.NewRouter()
 			err := s.Handle("/test/:param1/hello", dummy)
 			Expect(err).To(BeNil())
 
@@ -95,10 +56,10 @@ func TestRouter(t *testing.T) {
 	})
 
 	g.Describe("Router Lookup method", func() {
-		var s *Router
+		var s *framework.Router
 
 		g.Before(func() {
-			s = NewRouter()
+			s = framework.NewRouter()
 			s.Handle("/hello/:name", dynamic)
 			s.Handle("/hello/:name/by-name", dynamic1)
 			s.Handle("/hello/*", splat)
@@ -171,9 +132,9 @@ func TestRouter(t *testing.T) {
 	})
 
 	g.Describe("Test splat fallback", func() {
-		var s *Router
+		var s *framework.Router
 		g.Before(func() {
-			s = NewRouter()
+			s = framework.NewRouter()
 			s.Handle("/short", static)
 			s.Handle("/*", splat)
 		})
@@ -198,9 +159,9 @@ func TestRouter(t *testing.T) {
 	})
 
 	g.Describe("Test splat fallback after matching variable", func() {
-		var s *Router
+		var s *framework.Router
 		g.Before(func() {
-			s = NewRouter()
+			s = framework.NewRouter()
 			s.Handle("/hello/:fname/:lname", static)
 			s.Handle("/hello/*", splat)
 		})
