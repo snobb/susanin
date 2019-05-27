@@ -34,14 +34,14 @@ func TestRouter(t *testing.T) {
 		})
 
 		g.It("Should create logger and log info message", func() {
-			meta := logging.Meta{
-				"msg":   "test message",
-				"meta1": "value1",
-				"meta2": "value2",
-				"meta3": "value3",
+			pairs := []interface{}{
+				"msg", "test message",
+				"meta1", "value1",
+				"meta2", "value2",
+				"meta3", "value3",
 			}
 
-			logger.Info(meta)
+			logger.Info(pairs...)
 
 			fields, err := helper.ParseJSONLog(&buf)
 			Expect(err).To(BeNil())
@@ -57,11 +57,11 @@ func TestRouter(t *testing.T) {
 		})
 
 		g.It("Should create logger and log error message", func() {
-			meta := logging.Meta{
-				"msg": "test message",
+			pairs := []interface{}{
+				"msg", "test message",
 			}
 
-			logger.Error(meta)
+			logger.Error(pairs...)
 
 			fields, err := helper.ParseJSONLog(&buf)
 			Expect(err).To(BeNil())
@@ -75,16 +75,16 @@ func TestRouter(t *testing.T) {
 
 		g.It("Should create sublogger and log info message", func() {
 			l := logger.NewSubLogger("SUB")
-			meta := logging.Meta{
-				"msg": "test message",
-				"data": map[string]string{
+			pairs := []interface{}{
+				"msg", "test message",
+				"data", map[string]string{
 					"meta1": "value1",
 					"meta2": "value2",
 					"meta3": "value3",
 				},
 			}
 
-			l.Info(meta)
+			l.Info(pairs...)
 
 			fields, err := helper.ParseJSONLog(&buf)
 			Expect(err).To(BeNil())
@@ -102,12 +102,12 @@ func TestRouter(t *testing.T) {
 		})
 
 		g.It("Should create logger and log debug message", func() {
-			meta := logging.Meta{
-				"msg":   "test message",
-				"debug": true,
+			pairs := []interface{}{
+				"msg", "test message",
+				"debug", true,
 			}
 
-			logger.Log(logging.Debug, meta)
+			logger.Debug(pairs...)
 
 			fields, err := helper.ParseJSONLog(&buf)
 			Expect(err).To(BeNil())

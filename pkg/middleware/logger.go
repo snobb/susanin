@@ -14,12 +14,12 @@ import (
 func RequestLogger(logger logging.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fields := map[string]interface{}{
-				"type":    "request",
-				"method":  r.Method,
-				"uri":     r.URL.Path,
-				"proto":   r.Proto,
-				"headers": r.Header,
+			fields := []interface{}{
+				"type", "request",
+				"method", r.Method,
+				"uri", r.URL.Path,
+				"proto", r.Proto,
+				"headers", r.Header,
 			}
 
 			if r.Method == "POST" || r.Method == "PUT" {
@@ -40,14 +40,14 @@ func RequestLogger(logger logging.Logger) Middleware {
 						return
 					}
 
-					fields["body"] = jsonBody
+					fields = append(fields, "body", jsonBody)
 
 				} else {
-					fields["body"] = string(body)
+					fields = append(fields, "body", string(body))
 				}
 			}
 
-			logger.Info(fields)
+			logger.Info(fields...)
 
 			next.ServeHTTP(w, r)
 		})
@@ -77,16 +77,13 @@ func ResponseLogger(logger logging.Logger) Middleware {
 				normBody = string(body)
 			}
 
-			fields := map[string]interface{}{
-				"status":  wbuf.Status,
-				"time":    time.Now(),
-				"type":    "response",
-				"headers": wbuf.Header(),
-				"body":    normBody,
-				"elapsed": time.Since(start),
-			}
+			logger.Info(
+				"status", wbuf.Status,
+				"type", "response",
+				"headers", wbuf.Header(),
+				"body", normBody,
+				"elapsed", time.Since(start))
 
-			logger.Info(fields)
 			wbuf.flush()
 		})
 	}

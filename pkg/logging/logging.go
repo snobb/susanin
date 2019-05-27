@@ -10,26 +10,14 @@ import (
 	"time"
 )
 
-// LogLevel constants
-const (
-	Info = iota
-	Warn
-	Error
-	Debug
-)
-
-// LogLevel for log messages
-type LogLevel int
-
-// Meta stores the log meta data
-type Meta map[string]interface{}
-
-// Logger interface to represent a logging vacility
+// Logger interface to represent a logging facility
 type Logger interface {
 	NewSubLogger(name string) Logger
-	Log(level LogLevel, meta Meta)
-	Info(meta Meta)
-	Error(meta Meta)
+	Info(kv ...interface{})
+	Warn(kv ...interface{})
+	Error(kv ...interface{})
+	Debug(kv ...interface{})
+	Fatal(kv ...interface{})
 }
 
 // DefaultLogger is a stdout implementation
@@ -52,48 +40,59 @@ func (dl DefaultLogger) NewSubLogger(name string) Logger {
 	return New(subName, dl.Out.Writer())
 }
 
-// Log - universal log function
-func (dl DefaultLogger) Log(logLevel LogLevel, meta Meta) {
-	var level string
-
-	switch logLevel {
-	case Info:
-		level = "info"
-	case Warn:
-		level = "warn"
-	case Error:
-		level = "error"
-	case Debug:
-		level = "debug"
-	default:
-		level = "info"
+// logMessage -- universal log function
+func (dl *DefaultLogger) logMessage(level string, kv []interface{}) {
+	if len(kv)%2 != 0 {
+		dl.Error("error", "the number of keys/values should be even", "kvs", kv)
+		return
 	}
 
-	logMeta := map[string]interface{}{
-		"time":  time.Now(),
-		"name":  dl.name,
-		"pid":   os.Getpid(),
-		"level": level,
+	if len(kv) == 0 {
+		dl.Error("error", "at least 1 field pair must be provided")
+		return
 	}
 
-	for k, v := range meta {
-		logMeta[k] = v
+	logMeta := make(map[string]interface{})
+
+	for i := 0; i < len(kv); i += 2 {
+		key := kv[i].(string)
+		logMeta[key] = kv[i+1]
 	}
 
-	logStr, err := json.Marshal(logMeta)
+	meta, err := json.Marshal(logMeta)
 	if err != nil {
-		dl.Out.Printf("Unable to marshal %v\n", logMeta)
+		dl.Error("msg", "unable to marshal", "error", err)
+		return
 	}
 
-	dl.Out.Println(string(logStr))
+	header := fmt.Sprintf(`{"time":"%v","name":"%s","pid":%d,"level":"%s",`,
+		time.Now().Format(time.UnixDate), dl.name, os.Getpid(), level)
+
+	dl.Out.Println(header + string(meta)[1:])
 }
 
 // Info logger
-func (dl DefaultLogger) Info(meta Meta) {
-	dl.Log(Info, meta)
+func (dl DefaultLogger) Info(kv ...interface{}) {
+	dl.logMessage("info", kv)
+}
+
+// Warn logger
+func (dl DefaultLogger) Warn(kv ...interface{}) {
+	dl.logMessage("warn", kv)
 }
 
 // Error logger
-func (dl DefaultLogger) Error(meta Meta) {
-	dl.Log(Error, meta)
+func (dl DefaultLogger) Error(kv ...interface{}) {
+	dl.logMessage("error", kv)
+}
+
+// Fatal logger
+func (dl DefaultLogger) Fatal(kv ...interface{}) {
+	dl.logMessage("fatal", kv)
+	os.Exit(1)
+}
+
+// Debug logger
+func (dl DefaultLogger) Debug(kv ...interface{}) {
+	dl.logMessage("debug", kv)
 }

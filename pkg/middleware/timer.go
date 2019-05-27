@@ -16,18 +16,12 @@ func Timer(logger logging.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			logger.Info(map[string]interface{}{
-				"msg": "accepted connection",
-				"uri": r.URL.Path,
-			})
+			logger.Info("msg", "accepted connection", "uri", r.URL.Path)
 
 			next.ServeHTTP(w, r)
 
 			elapsed := time.Since(start)
-			logger.Info(map[string]interface{}{
-				"elapsed":     elapsed,
-				"elapsed_str": elapsed.String(),
-			})
+			logger.Info("elapsed", elapsed, "elapsed_str", elapsed.String())
 		})
 	}
 }
