@@ -17,6 +17,7 @@ type Logger interface {
 	Warn(kv ...interface{})
 	Error(kv ...interface{})
 	Debug(kv ...interface{})
+	Trace(kv ...interface{})
 	Fatal(kv ...interface{})
 }
 
@@ -86,12 +87,17 @@ func (dl DefaultLogger) Error(kv ...interface{}) {
 	dl.logMessage("error", kv)
 }
 
-// Fatal logger
-func (dl DefaultLogger) Fatal(kv ...interface{}) {
-	dl.logMessage("fatal", kv)
-}
-
 // Debug logger
 func (dl DefaultLogger) Debug(kv ...interface{}) {
 	dl.logMessage("debug", kv)
+}
+
+// Trace logger
+func (dl DefaultLogger) Trace(kv ...interface{}) {
+	dl.logMessage("trace", kv)
+}
+
+// Fatal logger
+func (dl DefaultLogger) Fatal(kv ...interface{}) {
+	dl.logMessage("fatal", kv)
 }

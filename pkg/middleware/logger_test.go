@@ -73,7 +73,7 @@ func TestLogger(t *testing.T) {
 				Expect(fields).To(HaveKeyWithValue("uri", "/foo/bar"))
 				Expect(fields).To(HaveKeyWithValue("proto", "HTTP/1.1"))
 
-				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("level", "trace"))
 				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
 				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
@@ -103,7 +103,7 @@ func TestLogger(t *testing.T) {
 				Expect(hdrs).To(HaveKey("Content-Type"))
 				Expect(hdrs["Content-Type"].([]interface{})[0]).To(Equal("application/json"))
 
-				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("level", "trace"))
 				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
 				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
@@ -126,7 +126,7 @@ func TestLogger(t *testing.T) {
 				Expect(fields).To(HaveKeyWithValue("proto", "HTTP/1.1"))
 				Expect(fields).To(HaveKeyWithValue("body", "foo"))
 
-				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("level", "trace"))
 				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
 				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
@@ -163,7 +163,7 @@ func TestLogger(t *testing.T) {
 				Expect(fields).To(HaveKeyWithValue("status", float64(200)))
 				Expect(fields).To(HaveKeyWithValue("body", "root"))
 
-				Expect(fields).To(HaveKeyWithValue("level", "info"))
+				Expect(fields).To(HaveKeyWithValue("level", "trace"))
 				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
 				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
