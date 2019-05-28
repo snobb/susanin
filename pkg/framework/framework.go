@@ -49,10 +49,6 @@ func (s *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 	return s
 }
 
-func error404(w http.ResponseWriter, msg string) {
-	http.Error(w, msg, 404)
-}
-
 func (s *Framework) handler(method int, path string, handler http.HandlerFunc) error {
 	if s.methods[method] == nil {
 		s.methods[method] = NewRouter()
@@ -88,13 +84,13 @@ func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 		method = mOptions
 
 	default:
-		error404(w, "Invalid REST method")
+		returnError(w, "Invalid REST method", 404)
 		return
 	}
 
 	rt := s.methods[method]
 	if rt == nil {
-		error404(w, "Not found")
+		returnError(w, "Method is not found", 404)
 		return
 	}
 
