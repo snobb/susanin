@@ -63,14 +63,14 @@ func TestTimer(t *testing.T) {
 				lines, err := helper.ParseAllJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(lines[0]).To(HaveKeyWithValue("level", "info"))
+				Expect(lines[0]).To(HaveKeyWithValue("level", "trace"))
 				Expect(lines[0]).To(HaveKeyWithValue("name", "TIMER"))
 				Expect(lines[0]).To(HaveKey("time"))
 				Expect(lines[0]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 				Expect(lines[0]).To(HaveKeyWithValue("uri", "/foo/bar"))
 				Expect(lines[0]).To(HaveKeyWithValue("msg", "accepted connection"))
 
-				Expect(lines[1]).To(HaveKeyWithValue("level", "info"))
+				Expect(lines[1]).To(HaveKeyWithValue("level", "trace"))
 				Expect(lines[1]).To(HaveKeyWithValue("name", "TIMER"))
 				Expect(lines[1]).To(HaveKey("time"))
 				Expect(lines[1]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))

@@ -47,7 +47,7 @@ func RequestLogger(logger logging.Logger) Middleware {
 				}
 			}
 
-			logger.Info(fields...)
+			logger.Trace(fields...)
 
 			next.ServeHTTP(w, r)
 		})
@@ -77,7 +77,7 @@ func ResponseLogger(logger logging.Logger) Middleware {
 				normBody = string(body)
 			}
 
-			logger.Info(
+			logger.Trace(
 				"status", wbuf.Status,
 				"type", "response",
 				"headers", wbuf.Header(),

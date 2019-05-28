@@ -1,5 +1,3 @@
-include git.mk
-
 TARGET := susanin
 EXAMPLESRC := ./examples
 
@@ -22,3 +20,5 @@ clean:
 	-rm -rf bin
 
 .PHONY: build clean vet test
+
+include git.mk
