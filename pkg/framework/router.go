@@ -6,6 +6,7 @@ package framework
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -164,7 +165,7 @@ func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error
 		return splatHandler, values, nil
 	}
 
-	return nil, nil, errors.New("not found")
+	return nil, nil, errors.New("Endpoint is not found")
 }
 
 // RouterHandler is a http.HandlerFunc router that dispatches the request
@@ -174,7 +175,7 @@ func (s *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 
 	handler, values, err := s.Lookup(uri)
 	if err != nil {
-		http.Error(w, err.Error(), 404)
+		returnError(w, err.Error(), 404)
 		return
 	}
 
@@ -197,4 +198,18 @@ func GetValues(r *http.Request) (map[string]string, bool) {
 
 	values, ok := value.(map[string]string)
 	return values, ok
+}
+
+func returnError(w http.ResponseWriter, msg string, code int) {
+	error := map[string]interface{}{
+		"code": code,
+		"msg":  msg,
+	}
+
+	body, err := json.Marshal(error)
+	if err != nil {
+		panic("Cannot marshal error message")
+	}
+
+	http.Error(w, string(body), code)
 }
