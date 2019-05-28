@@ -61,7 +61,7 @@ func (dl *DefaultLogger) logMessage(level string, kv []interface{}) {
 
 	meta, err := json.Marshal(logMeta)
 	if err != nil {
-		dl.Error("msg", "unable to marshal", "error", err)
+		dl.Error("error", err.Error())
 		return
 	}
 
@@ -89,7 +89,6 @@ func (dl DefaultLogger) Error(kv ...interface{}) {
 // Fatal logger
 func (dl DefaultLogger) Fatal(kv ...interface{}) {
 	dl.logMessage("fatal", kv)
-	os.Exit(1)
 }
 
 // Debug logger
