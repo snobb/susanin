@@ -15,6 +15,8 @@ import (
 	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware"
+	"github.com/snobb/susanin/pkg/middleware/request"
+	"github.com/snobb/susanin/pkg/middleware/response"
 )
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,9 +86,9 @@ func main() {
 	fw.Post("/post/*", postHandler)
 
 	fw.Attach(middleware.Debug)
-	fw.Attach(middleware.RequestLogger(logger))
-	fw.Attach(middleware.ResponseLogger(logger))
-	fw.Attach(middleware.Timer(logger))
+	fw.Attach(request.NewLogger(logger))
+	fw.Attach(response.NewLogger(logger))
+	fw.Attach(response.NewTimer(logger))
 
 	mux.Handle("/", fw.Router())
 	err := http.ListenAndServe(":8080", mux)

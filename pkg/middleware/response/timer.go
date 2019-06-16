@@ -1,4 +1,4 @@
-package middleware
+package response
 
 /**
  * @author: Alex Kozadaev
@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/snobb/susanin/pkg/logging"
+	"github.com/snobb/susanin/pkg/middleware"
 )
 
-// Timer adds time counting
-func Timer(logger logging.Logger) Middleware {
+// NewTimer adds time counter middleware
+func NewTimer(logger logging.Logger) middleware.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
