@@ -1,4 +1,4 @@
-package middleware_test
+package response_test
 
 import (
 	"bytes"
@@ -8,12 +8,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/snobb/susanin/pkg/framework"
-	"github.com/snobb/susanin/pkg/logging"
-	"github.com/snobb/susanin/pkg/middleware"
-	"github.com/snobb/susanin/test/helper"
 	"github.com/franela/goblin"
 	. "github.com/onsi/gomega"
+
+	"github.com/snobb/susanin/pkg/framework"
+	"github.com/snobb/susanin/pkg/logging"
+	"github.com/snobb/susanin/pkg/middleware/response"
+	"github.com/snobb/susanin/test/helper"
 )
 
 func TestTimer(t *testing.T) {
@@ -41,9 +42,9 @@ func TestTimer(t *testing.T) {
 			rr = httptest.NewRecorder()
 		})
 
-		g.Describe("Timer middleware", func() {
+		g.Describe("response.Timer middleware", func() {
 			g.Before(func() {
-				s.Attach(middleware.Timer(logger))
+				s.Attach(response.NewTimer(logger))
 				s.Get("/*", helper.HandlerFactory(200, "root"))
 			})
 

@@ -1,10 +1,10 @@
-package middleware_test
+package response_test
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/franela/goblin"
@@ -12,13 +12,11 @@ import (
 
 	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/logging"
-	"github.com/snobb/susanin/pkg/middleware"
-	"github.com/snobb/susanin/pkg/middleware/request"
 	"github.com/snobb/susanin/pkg/middleware/response"
 	"github.com/snobb/susanin/test/helper"
 )
 
-func TestAttach(t *testing.T) {
+func TestLogger(t *testing.T) {
 	g := goblin.Goblin(t)
 
 	//special hook for gomega
@@ -28,14 +26,14 @@ func TestAttach(t *testing.T) {
 		var (
 			s      *framework.Framework
 			buf    bytes.Buffer
-			logger logging.Logger
 			req    *http.Request
+			logger logging.Logger
 			rr     *httptest.ResponseRecorder
 			err    error
 		)
 
 		g.Before(func() {
-			logger = logging.New("attach", &buf)
+			logger = logging.New("logger", &buf)
 			s = framework.NewFramework()
 		})
 
@@ -43,21 +41,19 @@ func TestAttach(t *testing.T) {
 			rr = httptest.NewRecorder()
 		})
 
-		g.Describe("Attach middleware function", func() {
+		g.Describe("response.Logger middleware", func() {
 			g.Before(func() {
-				handler := http.Handler(helper.HandlerFactory(200, "root"))
-				mwHandler := middleware.Attach(handler,
-					request.NewLogger(logger),
-					response.NewLogger(logger))
-				s.Get("/*", http.HandlerFunc(mwHandler))
+				s = framework.NewFramework()
+				s.Attach(response.NewLogger(logger))
+				s.Get("/*", helper.HandlerFactory(200, "root"))
+				s.Post("/*", helper.HandlerFactory(200, "root"))
 			})
 
 			g.AfterEach(func() {
-				fmt.Println(buf.String())
 				buf.Reset()
 			})
 
-			g.It("Should attach request and response middleware successfully", func() {
+			g.It("Should log the response successfully", func() {
 				req, err = http.NewRequest("GET", "/foo/bar?filter=13", nil)
 				Expect(err).To(BeNil())
 				req.Header.Set("content-type", "application/json")
@@ -65,12 +61,19 @@ func TestAttach(t *testing.T) {
 				handler := s.Router()
 				handler.ServeHTTP(rr, req)
 
-				lines, err := helper.ParseAllJSONLog(&buf)
+				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
 
-				Expect(len(lines)).To(Equal(2))
-				Expect(lines[0]).To(HaveKeyWithValue("type", "request"))
-				Expect(lines[1]).To(HaveKeyWithValue("type", "response"))
+				Expect(len(fields)).To(Equal(9))
+				Expect(fields).To(HaveKey("time"))
+				Expect(fields).To(HaveKeyWithValue("type", "response"))
+				Expect(fields).To(HaveKeyWithValue("elapsed", BeNumerically(">", 100)))
+				Expect(fields).To(HaveKeyWithValue("status", float64(200)))
+				Expect(fields).To(HaveKeyWithValue("body", "root"))
+
+				Expect(fields).To(HaveKeyWithValue("level", "trace"))
+				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
+				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
 			})
 		})
 	})
