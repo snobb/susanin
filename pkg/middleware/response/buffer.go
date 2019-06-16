@@ -22,7 +22,7 @@ func NewBuffer(w http.ResponseWriter) *Buffer {
 	return &Buffer{
 		Response: w,
 		Status:   200,
-		Body:     &bytes.Buffer{},
+		Body:     new(bytes.Buffer),
 	}
 }
 

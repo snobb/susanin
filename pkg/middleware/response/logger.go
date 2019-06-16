@@ -17,6 +17,7 @@ func NewLogger(logger logging.Logger) middleware.Middleware {
 			next.ServeHTTP(wbuf, r)
 
 			body := wbuf.Body.Bytes()
+			wbuf.Flush()
 
 			logger.Trace(
 				"status", wbuf.Status,
@@ -24,8 +25,6 @@ func NewLogger(logger logging.Logger) middleware.Middleware {
 				"headers", wbuf.Header(),
 				"body", string(body),
 				"elapsed", time.Since(start))
-
-			wbuf.Flush()
 		})
 	}
 }
