@@ -10,11 +10,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/logging"
-	"github.com/snobb/susanin/pkg/middleware"
 	"github.com/snobb/susanin/pkg/middleware/request"
 	"github.com/snobb/susanin/pkg/middleware/response"
 )
@@ -24,18 +22,12 @@ func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	var message string
-
 	if values, ok := framework.GetValues(r); ok {
-		message = fmt.Sprintf("Hello %s %s\n",
-			strings.Title(values["fname"]), strings.Title(values["lname"]))
-	} else {
-		log.Println("Empty arguments")
-		message = "Hello!"
+		response.WithPayload(r.Context(), map[string]interface{}{
+			"first_name": values["fname"],
+			"last_name":  values["lname"],
+		})
 	}
-
-	w.WriteHeader(200)
-	w.Write([]byte(message))
 }
 
 func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
@@ -85,8 +77,9 @@ func main() {
 	fw.Get("/*", fallbackHandler)
 	fw.Post("/post/*", postHandler)
 
-	fw.Attach(middleware.Debug)
+	// fw.Attach(middleware.Debug)
 	fw.Attach(request.NewLogger(logger))
+	fw.Attach(response.NewJSONEncoder(logger))
 	fw.Attach(response.NewLogger(logger))
 	fw.Attach(response.NewTimer(logger))
 

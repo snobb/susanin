@@ -18,6 +18,9 @@ type debugResponseWriter struct {
 	buf *bytes.Buffer
 }
 
+// XXX: this middleware is rather pointeless and needs to be scarapped.
+// Please use request.Logger(...) and response.Logger(...) instead.
+
 // Debug adds logging of HTTP protocol information
 func Debug(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +50,14 @@ func Debug(next http.Handler) http.Handler {
 		rec := httptest.NewRecorder()
 		next.ServeHTTP(rec, r)
 
-		body = rec.Body.Bytes()
 		for name, values := range rec.Header() {
 			w.Header()[name] = values
 		}
 
+		body = rec.Body.Bytes()
 		w.WriteHeader(rec.Code)
 		w.Write(body)
+		rec.Flush()
 
 		res := rec.Result()
 		log.Printf(">>>> %s %s", res.Status, res.Proto)
