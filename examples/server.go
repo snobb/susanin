@@ -37,9 +37,6 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 
 	if values, ok := framework.GetValues(r); ok {
 		message = fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
-	} else {
-		log.Println("Empty arguments")
-		message = fmt.Sprintf("Hello! [uri: %s]\n", uri)
 	}
 
 	w.WriteHeader(200)
