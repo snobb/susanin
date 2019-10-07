@@ -44,21 +44,21 @@ func NewFrameworkWithPrefix(prefix string) *Framework {
 }
 
 // Attach adds middleware to the chain
-func (s *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
-	s.stack = append(s.stack, middlewares...)
-	return s
+func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
+	fw.stack = append(fw.stack, middlewares...)
+	return fw
 }
 
-func (s *Framework) handler(method int, path string, handler http.HandlerFunc) error {
-	if s.methods[method] == nil {
-		s.methods[method] = NewRouter()
+func (fw *Framework) handler(method int, path string, handler http.HandlerFunc) error {
+	if fw.methods[method] == nil {
+		fw.methods[method] = NewRouter()
 	}
 
-	rt := s.methods[method]
-	return rt.Handle(s.prefix+path, handler)
+	rt := fw.methods[method]
+	return rt.Handle(fw.prefix+path, handler)
 }
 
-func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
+func (fw *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 	var method int
 
 	switch r.Method {
@@ -88,7 +88,7 @@ func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rt := s.methods[method]
+	rt := fw.methods[method]
 	if rt == nil {
 		returnError(w, "Method is not found", 404)
 		return
@@ -98,53 +98,53 @@ func (s *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 }
 
 // Router combines the chain and returns the resulting handler function
-func (s *Framework) Router() http.Handler {
-	var h http.Handler = http.HandlerFunc(s.dispatch)
-	for i := 0; i < len(s.stack); i++ {
-		h = s.stack[i](h)
+func (fw *Framework) Router() http.Handler {
+	var h http.Handler = http.HandlerFunc(fw.dispatch)
+	for i := 0; i < len(fw.stack); i++ {
+		h = fw.stack[i](h)
 	}
 
 	return h
 }
 
 // Get adds handler for GET requests
-func (s *Framework) Get(path string, handler http.HandlerFunc) {
-	s.handler(mGet, path, handler)
+func (fw *Framework) Get(path string, handler http.HandlerFunc) {
+	fw.handler(mGet, path, handler)
 }
 
 // Put adds handler for PUT requests
-func (s *Framework) Put(path string, handler http.HandlerFunc) {
-	s.handler(mPut, path, handler)
+func (fw *Framework) Put(path string, handler http.HandlerFunc) {
+	fw.handler(mPut, path, handler)
 }
 
 // Post adds handler for POST requests
-func (s *Framework) Post(path string, handler http.HandlerFunc) {
-	s.handler(mPost, path, handler)
+func (fw *Framework) Post(path string, handler http.HandlerFunc) {
+	fw.handler(mPost, path, handler)
 }
 
 // Delete adds handler for DELETE requests
-func (s *Framework) Delete(path string, handler http.HandlerFunc) {
-	s.handler(mDelete, path, handler)
+func (fw *Framework) Delete(path string, handler http.HandlerFunc) {
+	fw.handler(mDelete, path, handler)
 }
 
 // Patch adds handler for PATCH requests
-func (s *Framework) Patch(path string, handler http.HandlerFunc) {
-	s.handler(mPatch, path, handler)
+func (fw *Framework) Patch(path string, handler http.HandlerFunc) {
+	fw.handler(mPatch, path, handler)
 }
 
 // Head adds handler for PATCH requests
-func (s *Framework) Head(path string, handler http.HandlerFunc) {
-	s.handler(mHead, path, handler)
+func (fw *Framework) Head(path string, handler http.HandlerFunc) {
+	fw.handler(mHead, path, handler)
 }
 
 // Options adds handler for PATCH requests
-func (s *Framework) Options(path string, handler http.HandlerFunc) {
-	s.handler(mOptions, path, handler)
+func (fw *Framework) Options(path string, handler http.HandlerFunc) {
+	fw.handler(mOptions, path, handler)
 }
 
 // Clear clears all handlers for all methods
-func (s *Framework) Clear() {
+func (fw *Framework) Clear() {
 	for i := 0; i < mSize; i++ {
-		s.methods[i] = nil
+		fw.methods[i] = nil
 	}
 }
