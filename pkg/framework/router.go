@@ -49,7 +49,7 @@ func NewRouter() *Router {
 }
 
 // Handle add a route and a handler
-func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
+func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
@@ -67,7 +67,7 @@ func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 
 	tokens := strings.Split(path, "/")
 
-	cur := s.root
+	cur := rt.root
 
 	for _, token := range tokens {
 		switch {
@@ -114,7 +114,7 @@ func (s *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 }
 
 // Lookup for a handler in the path, a handler, pattern values and error is returned.
-func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
+func (rt *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -126,7 +126,7 @@ func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error
 
 	tokens := strings.Split(path, "/")
 
-	cur := s.root
+	cur := rt.root
 	var splatHandler http.HandlerFunc
 	var values map[string]string
 	hasSplat := false
@@ -170,10 +170,10 @@ func (s *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error
 
 // RouterHandler is a http.HandlerFunc router that dispatches the request
 // based on saved routes and handlers
-func (s *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 
-	handler, values, err := s.Lookup(uri)
+	handler, values, err := rt.Lookup(uri)
 	if err != nil {
 		returnError(w, err.Error(), 404)
 		return
