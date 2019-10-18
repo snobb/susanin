@@ -1,5 +1,10 @@
 package response
 
+/*
+ * this middleware was inspired by work of Rafał Lorenz
+ * https://rafallorenz.com/go/go-middleware-parsing-http-response-as-json/
+ */
+
 import (
 	"context"
 	"encoding/json"
