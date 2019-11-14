@@ -27,6 +27,15 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// MarshalJSON is the implementation of Marshaler interface for Error
+func (e Error) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"code":    e.Code,
+		"error":   e.Error.Error(),
+		"message": e.Message,
+	})
+}
+
 func (enc *encode) write(payload interface{}) {
 	enc.payload = payload
 }
@@ -52,11 +61,7 @@ func WithPayload(ctx context.Context, payload interface{}) {
 
 // WithError add an Error struct to the given context
 func WithError(ctx context.Context, err Error) {
-	WithPayload(ctx, map[string]interface{}{
-		"code":    err.Code,
-		"error":   err.Error.Error(),
-		"message": err.Message,
-	})
+	WithPayload(ctx, err)
 }
 
 // NewJSONEncoder creates a new response middleware

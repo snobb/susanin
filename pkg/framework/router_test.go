@@ -1,9 +1,5 @@
 package framework_test
 
-/**
- * @author: Alex Kozadaev
- */
-
 import (
 	"net/http"
 	"reflect"
@@ -12,7 +8,6 @@ import (
 
 	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/test/helper"
-
 	"github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
