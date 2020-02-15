@@ -34,7 +34,7 @@ func TestLogger(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("logger", &buf)
-			s = framework.NewFramework()
+			s = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -43,7 +43,7 @@ func TestLogger(t *testing.T) {
 
 		g.Describe("response.Logger middleware", func() {
 			g.Before(func() {
-				s = framework.NewFramework()
+				s = framework.New()
 				s.Attach(response.NewLogger(logger))
 				s.Get("/*", helper.HandlerFactory(200, "root"))
 				s.Post("/*", helper.HandlerFactory(200, "root"))

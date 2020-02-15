@@ -51,7 +51,7 @@ func TestJSONEncoder(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("logger", &buf)
-			s = framework.NewFramework()
+			s = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -60,7 +60,7 @@ func TestJSONEncoder(t *testing.T) {
 
 		g.Describe("response.JSONEncoder test", func() {
 			g.Before(func() {
-				s = framework.NewFramework()
+				s = framework.New()
 				s.Attach(response.NewJSONEncoder(logger))
 				s.Get("/", Handler)
 				s.Get("/name/:name", Handler)

@@ -44,12 +44,10 @@ func (w *Buffer) WriteHeader(status int) {
 
 // Flush implements the Flusher interface
 func (w *Buffer) Flush() {
-	if w.Body.Len() > 0 {
-		w.Response.WriteHeader(w.Status)
-		if _, err := w.Response.Write(w.Body.Bytes()); err != nil {
-			panic(err)
-		}
-
-		w.Body.Reset()
+	w.Response.WriteHeader(w.Status)
+	if _, err := w.Response.Write(w.Body.Bytes()); err != nil {
+		panic(err)
 	}
+
+	w.Body.Reset()
 }

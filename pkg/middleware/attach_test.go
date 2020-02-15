@@ -36,7 +36,7 @@ func TestAttach(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("attach", &buf)
-			s = framework.NewFramework()
+			s = framework.New()
 		})
 
 		g.JustBeforeEach(func() {

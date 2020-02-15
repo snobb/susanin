@@ -60,7 +60,7 @@ func main() {
 
 	logger := logging.New("example", os.Stderr)
 
-	fw := framework.NewFrameworkWithPrefix("/api/v1")
+	fw := framework.NewWithPrefix("/api/v1")
 	fw.Get("/", homeHandler)
 	fw.Get("/home/*", homeHandler)
 	fw.Get("/short", homeHandler)
