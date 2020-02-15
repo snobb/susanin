@@ -100,4 +100,5 @@ func (dl DefaultLogger) Trace(kv ...interface{}) {
 // Fatal logger
 func (dl DefaultLogger) Fatal(kv ...interface{}) {
 	dl.logMessage("fatal", kv)
+	panic("fatal")
 }

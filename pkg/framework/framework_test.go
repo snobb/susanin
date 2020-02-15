@@ -31,7 +31,7 @@ func TestFrameWork(t *testing.T) {
 		var rr *httptest.ResponseRecorder
 
 		g.Before(func() {
-			s = framework.NewFramework()
+			s = framework.New()
 			s.Get("/", helper.HandlerFactory(200, "root"))
 			s.Get("/short", helper.HandlerFactory(200, "short"))
 			s.Get("/home/*", helper.HandlerFactory(200, "home"))

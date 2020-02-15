@@ -35,7 +35,7 @@ func TestTimer(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("timer", &buf)
-			s = framework.NewFramework()
+			s = framework.New()
 		})
 
 		g.JustBeforeEach(func() {

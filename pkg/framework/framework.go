@@ -28,15 +28,15 @@ type Framework struct {
 	stack   []middleware.Middleware
 }
 
-// NewFramework is the Framework constructor
-func NewFramework() *Framework {
+// New is the Framework constructor
+func New() *Framework {
 	return &Framework{
 		stack: make([]middleware.Middleware, 0),
 	}
 }
 
-// NewFrameworkWithPrefix is the Framework constructor
-func NewFrameworkWithPrefix(prefix string) *Framework {
+// NewWithPrefix is the Framework constructor
+func NewWithPrefix(prefix string) *Framework {
 	return &Framework{
 		stack:  make([]middleware.Middleware, 0),
 		prefix: prefix,
@@ -49,13 +49,15 @@ func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 	return fw
 }
 
-func (fw *Framework) handler(method int, path string, handler http.HandlerFunc) error {
+func (fw *Framework) handler(method int, path string, handler http.HandlerFunc) {
 	if fw.methods[method] == nil {
 		fw.methods[method] = NewRouter()
 	}
 
 	rt := fw.methods[method]
-	return rt.Handle(fw.prefix+path, handler)
+	if err := rt.Handle(fw.prefix+path, handler); err != nil {
+		panic(err)
+	}
 }
 
 func (fw *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
