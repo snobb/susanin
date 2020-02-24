@@ -27,16 +27,16 @@ func TestFrameWork(t *testing.T) {
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("The Router function", func() {
-		var s *framework.Framework
+		var fw *framework.Framework
 		var rr *httptest.ResponseRecorder
 
 		g.Before(func() {
-			s = framework.New()
-			s.Get("/", helper.HandlerFactory(200, "root"))
-			s.Get("/short", helper.HandlerFactory(200, "short"))
-			s.Get("/home/*", helper.HandlerFactory(200, "home"))
+			fw = framework.New()
+			fw.Get("/", helper.HandlerFactory(200, "root"))
+			fw.Get("/short", helper.HandlerFactory(200, "short"))
+			fw.Get("/home/*", helper.HandlerFactory(200, "home"))
 
-			s.Get("/hello/:fname/:lname/", func(w http.ResponseWriter, r *http.Request) {
+			fw.Get("/hello/:fname/:lname/", func(w http.ResponseWriter, r *http.Request) {
 				values, ok := framework.GetValues(r)
 				Expect(ok).To(BeTrue())
 				message := fmt.Sprintf("%s %s", values["fname"], values["lname"])
@@ -45,7 +45,7 @@ func TestFrameWork(t *testing.T) {
 				w.Write([]byte(message))
 			})
 
-			s.Post("/post/*", func(w http.ResponseWriter, r *http.Request) {
+			fw.Post("/post/*", func(w http.ResponseWriter, r *http.Request) {
 				body, err := ioutil.ReadAll(r.Body)
 				Expect(err).To(BeNil())
 				w.Write(body)
@@ -62,8 +62,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("root"))
 		})
 
@@ -73,8 +72,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("short"))
 		})
 
@@ -84,8 +82,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("home"))
 		})
 
@@ -95,8 +92,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("john doe"))
 		})
 
@@ -106,8 +102,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("john doe"))
 		})
 
@@ -118,8 +113,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("HELLO WORLD"))
 		})
 
@@ -129,8 +123,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 
 			var body map[string]interface{}
 			err = json.Unmarshal(rr.Body.Bytes(), &body)
@@ -145,8 +138,7 @@ func TestFrameWork(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 
 			var body map[string]interface{}
 			err = json.Unmarshal(rr.Body.Bytes(), &body)
@@ -156,14 +148,13 @@ func TestFrameWork(t *testing.T) {
 		})
 
 		g.It("should route to the fallback handler", func() {
-			s.Get("/*", helper.HandlerFactory(200, "fallback"))
+			fw.Get("/*", helper.HandlerFactory(200, "fallback"))
 			req, err := http.NewRequest("GET", "/does/not/exist", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			handler := s.Router()
-			handler.ServeHTTP(rr, req)
+			fw.ServeHTTP(rr, req)
 			Expect(rr.Body.String()).To(Equal("fallback"))
 		})
 	})

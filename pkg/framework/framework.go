@@ -99,14 +99,15 @@ func (fw *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 	rt.RouterHandler(w, r)
 }
 
-// Router combines the chain and returns the resulting handler function
-func (fw *Framework) Router() http.Handler {
+// ServeHTTP is the implementation of the http.Handler interface
+// It combines the chain and serves the HTTP requests.
+func (fw *Framework) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var h http.Handler = http.HandlerFunc(fw.dispatch)
 	for i := 0; i < len(fw.stack); i++ {
 		h = fw.stack[i](h)
 	}
 
-	return h
+	h.ServeHTTP(w, r)
 }
 
 // Get adds handler for GET requests

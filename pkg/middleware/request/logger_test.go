@@ -25,7 +25,7 @@ func TestLogger(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s      *framework.Framework
+			fw     *framework.Framework
 			buf    bytes.Buffer
 			req    *http.Request
 			logger logging.Logger
@@ -35,7 +35,7 @@ func TestLogger(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("logger", &buf)
-			s = framework.New()
+			fw = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -44,9 +44,9 @@ func TestLogger(t *testing.T) {
 
 		g.Describe("RequestLogger middleware", func() {
 			g.Before(func() {
-				s.Attach(request.NewLogger(logger))
-				s.Get("/*", helper.HandlerFactory(200, "root"))
-				s.Post("/*", helper.HandlerFactory(200, "root"))
+				fw.Attach(request.NewLogger(logger))
+				fw.Get("/*", helper.HandlerFactory(200, "root"))
+				fw.Post("/*", helper.HandlerFactory(200, "root"))
 			})
 
 			g.AfterEach(func() {
@@ -58,8 +58,7 @@ func TestLogger(t *testing.T) {
 				Expect(err).To(BeNil())
 				req.Header.Set("content-type", "application/json")
 
-				handler := s.Router()
-				handler.ServeHTTP(rr, req)
+				fw.ServeHTTP(rr, req)
 
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
@@ -82,8 +81,7 @@ func TestLogger(t *testing.T) {
 				Expect(err).To(BeNil())
 				req.Header.Set("content-type", "application/json")
 
-				handler := s.Router()
-				handler.ServeHTTP(rr, req)
+				fw.ServeHTTP(rr, req)
 
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())
@@ -111,8 +109,7 @@ func TestLogger(t *testing.T) {
 				req, err = http.NewRequest("POST", "/foo/bar", strings.NewReader("foo"))
 				Expect(err).To(BeNil())
 
-				handler := s.Router()
-				handler.ServeHTTP(rr, req)
+				fw.ServeHTTP(rr, req)
 
 				fields, err := helper.ParseJSONLog(&buf)
 				Expect(err).To(BeNil())

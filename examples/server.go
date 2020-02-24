@@ -80,7 +80,7 @@ func main() {
 	fw.Attach(response.NewLogger(logger))
 	fw.Attach(response.NewTimer(logger))
 
-	mux.Handle("/", fw.Router())
+	mux.Handle("/", fw)
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Println(err.Error())
