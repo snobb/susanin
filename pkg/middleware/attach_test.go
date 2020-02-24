@@ -26,7 +26,7 @@ func TestAttach(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s      *framework.Framework
+			fw     *framework.Framework
 			buf    bytes.Buffer
 			logger logging.Logger
 			req    *http.Request
@@ -36,7 +36,7 @@ func TestAttach(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("attach", &buf)
-			s = framework.New()
+			fw = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -49,7 +49,7 @@ func TestAttach(t *testing.T) {
 				mwHandler := middleware.Attach(handler,
 					request.NewLogger(logger),
 					response.NewLogger(logger))
-				s.Get("/*", http.HandlerFunc(mwHandler))
+				fw.Get("/*", http.HandlerFunc(mwHandler))
 			})
 
 			g.AfterEach(func() {
@@ -62,8 +62,7 @@ func TestAttach(t *testing.T) {
 				Expect(err).To(BeNil())
 				req.Header.Set("content-type", "application/json")
 
-				handler := s.Router()
-				handler.ServeHTTP(rr, req)
+				fw.ServeHTTP(rr, req)
 
 				lines, err := helper.ParseAllJSONLog(&buf)
 				Expect(err).To(BeNil())

@@ -41,7 +41,7 @@ func TestJSONEncoder(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s      *framework.Framework
+			fw     *framework.Framework
 			buf    bytes.Buffer
 			req    *http.Request
 			logger logging.Logger
@@ -51,7 +51,7 @@ func TestJSONEncoder(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("logger", &buf)
-			s = framework.New()
+			fw = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -60,10 +60,9 @@ func TestJSONEncoder(t *testing.T) {
 
 		g.Describe("response.JSONEncoder test", func() {
 			g.Before(func() {
-				s = framework.New()
-				s.Attach(response.NewJSONEncoder(logger))
-				s.Get("/", Handler)
-				s.Get("/name/:name", Handler)
+				fw.Attach(response.NewJSONEncoder(logger))
+				fw.Get("/", Handler)
+				fw.Get("/name/:name", Handler)
 			})
 
 			g.AfterEach(func() {
@@ -74,8 +73,7 @@ func TestJSONEncoder(t *testing.T) {
 				req, err = http.NewRequest("GET", "/name/test", nil)
 				Expect(err).To(BeNil())
 
-				handler := s.Router()
-				handler.ServeHTTP(w, req)
+				fw.ServeHTTP(w, req)
 
 				body := w.Body.Bytes()
 				Expect(err).To(BeNil())
@@ -88,8 +86,7 @@ func TestJSONEncoder(t *testing.T) {
 				req, err = http.NewRequest("GET", "/", nil)
 				Expect(err).To(BeNil())
 
-				handler := s.Router()
-				handler.ServeHTTP(w, req)
+				fw.ServeHTTP(w, req)
 
 				resp := w.Result()
 				body, err := ioutil.ReadAll(resp.Body)

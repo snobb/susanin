@@ -25,7 +25,7 @@ func TestTimer(t *testing.T) {
 
 	g.Describe("Generic", func() {
 		var (
-			s      *framework.Framework
+			fw     *framework.Framework
 			buf    bytes.Buffer
 			req    *http.Request
 			logger logging.Logger
@@ -35,7 +35,7 @@ func TestTimer(t *testing.T) {
 
 		g.Before(func() {
 			logger = logging.New("timer", &buf)
-			s = framework.New()
+			fw = framework.New()
 		})
 
 		g.JustBeforeEach(func() {
@@ -44,8 +44,8 @@ func TestTimer(t *testing.T) {
 
 		g.Describe("response.Timer middleware", func() {
 			g.Before(func() {
-				s.Attach(response.NewTimer(logger))
-				s.Get("/*", helper.HandlerFactory(200, "root"))
+				fw.Attach(response.NewTimer(logger))
+				fw.Get("/*", helper.HandlerFactory(200, "root"))
 			})
 
 			g.AfterEach(func() {
@@ -58,8 +58,7 @@ func TestTimer(t *testing.T) {
 				Expect(err).To(BeNil())
 				req.Header.Set("content-type", "application/json")
 
-				handler := s.Router()
-				handler.ServeHTTP(rr, req)
+				fw.ServeHTTP(rr, req)
 
 				lines, err := helper.ParseAllJSONLog(&buf)
 				Expect(err).To(BeNil())
