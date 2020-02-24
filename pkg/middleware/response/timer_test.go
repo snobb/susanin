@@ -1,82 +1,79 @@
 package response_test
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/franela/goblin"
-	. "github.com/onsi/gomega"
-
-	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware/response"
 	"github.com/snobb/susanin/test/helper"
+	"github.com/stretchr/testify/assert"
 )
 
+func timerHandler(logger logging.Logger) http.Handler {
+	mw := response.NewTimer(logger)
+	return mw(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+}
+
 func TestTimer(t *testing.T) {
-	g := goblin.Goblin(t)
+	var buf bytes.Buffer
 
-	//special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	tests := []struct {
+		name    string
+		args    logging.Logger
+		handler func(logging.Logger) http.Handler
+		checker []func(map[string]interface{})
+	}{
+		{
+			"test if a request produces log with elapsed time.",
+			logging.New("timer", &buf),
+			timerHandler,
+			[]func(map[string]interface{}){
+				func(v map[string]interface{}) {
+					assert.Equal(t, "trace", v["level"])
+					assert.Equal(t, "TIMER", v["name"])
+					assert.Equal(t, "trace", v["level"])
+					assert.Contains(t, v, "time")
+					assert.InDelta(t, os.Getpid(), v["pid"], 0)
+					assert.Equal(t, "/foo/bar", v["uri"])
+					assert.Equal(t, "accepted connection", v["msg"])
+				},
+				func(v map[string]interface{}) {
+					assert.Equal(t, "trace", v["level"])
+					assert.Equal(t, "TIMER", v["name"])
+					assert.Equal(t, "trace", v["level"])
+					assert.Contains(t, v, "time")
+					assert.InDelta(t, os.Getpid(), v["pid"], 0)
+					assert.Greater(t, v["elapsed"], 100.0)
+					assert.Contains(t, v, "elapsed_str")
+				},
+			},
+		},
+	}
 
-	g.Describe("Generic", func() {
-		var (
-			fw     *framework.Framework
-			buf    bytes.Buffer
-			req    *http.Request
-			logger logging.Logger
-			rr     *httptest.ResponseRecorder
-			err    error
-		)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest("GET", "/foo/bar", nil)
+			assert.Nil(t, err)
+			rr := httptest.NewRecorder()
 
-		g.Before(func() {
-			logger = logging.New("timer", &buf)
-			fw = framework.New()
+			tt.handler(tt.args).ServeHTTP(rr, req)
+
+			lines, err := helper.ParseAllJSONLog(&buf)
+			assert.Nil(t, err)
+
+			for i, line := range lines {
+				tt.checker[i](line)
+			}
+
+			buf.Reset()
 		})
-
-		g.JustBeforeEach(func() {
-			rr = httptest.NewRecorder()
-		})
-
-		g.Describe("response.Timer middleware", func() {
-			g.Before(func() {
-				fw.Attach(response.NewTimer(logger))
-				fw.Get("/*", helper.HandlerFactory(200, "root"))
-			})
-
-			g.AfterEach(func() {
-				fmt.Println(buf.String())
-				buf.Reset()
-			})
-
-			g.It("Should log the timing info successfully", func() {
-				req, err = http.NewRequest("GET", "/foo/bar?filter=13", nil)
-				Expect(err).To(BeNil())
-				req.Header.Set("content-type", "application/json")
-
-				fw.ServeHTTP(rr, req)
-
-				lines, err := helper.ParseAllJSONLog(&buf)
-				Expect(err).To(BeNil())
-
-				Expect(lines[0]).To(HaveKeyWithValue("level", "trace"))
-				Expect(lines[0]).To(HaveKeyWithValue("name", "TIMER"))
-				Expect(lines[0]).To(HaveKey("time"))
-				Expect(lines[0]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-				Expect(lines[0]).To(HaveKeyWithValue("uri", "/foo/bar"))
-				Expect(lines[0]).To(HaveKeyWithValue("msg", "accepted connection"))
-
-				Expect(lines[1]).To(HaveKeyWithValue("level", "trace"))
-				Expect(lines[1]).To(HaveKeyWithValue("name", "TIMER"))
-				Expect(lines[1]).To(HaveKey("time"))
-				Expect(lines[1]).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-				Expect(lines[1]).To(HaveKeyWithValue("elapsed", BeNumerically(">", 100)))
-				Expect(lines[1]).To(HaveKey("elapsed_str"))
-			})
-		})
-	})
+	}
 }

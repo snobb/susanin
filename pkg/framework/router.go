@@ -7,14 +7,13 @@ package framework
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
 
-type valueKeyName string
+type valuesKey struct{}
 
-const valuesKey valueKeyName = "values"
 const rootLink = "#ROOT#"
 
 // Router is a URI path router object
@@ -53,7 +52,7 @@ func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
-		return errors.New("invalid path: splat must be at the end of the path")
+		return fmt.Errorf("invalid path: splat must be at the end of the path")
 	}
 
 	if path[0] == '/' {
@@ -75,7 +74,7 @@ func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 			if cur.nextVar == nil {
 				cur.nextVar = newChainLink(token)
 			} else if token[1:] != cur.nextVar.name {
-				return errors.New("conflict: duplicate pattern at the same level")
+				return fmt.Errorf("conflict: duplicate pattern at the same level")
 			}
 
 			cur = cur.nextVar
@@ -105,7 +104,7 @@ func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 	}
 
 	if cur.handler != nil {
-		return errors.New("handler already exists")
+		return fmt.Errorf("handler already exists")
 	}
 
 	cur.handler = handler
@@ -165,7 +164,7 @@ func (rt *Router) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 		return splatHandler, values, nil
 	}
 
-	return nil, nil, errors.New("Endpoint is not found")
+	return nil, nil, fmt.Errorf("Endpoint is not found")
 }
 
 // RouterHandler is a http.HandlerFunc router that dispatches the request
@@ -181,7 +180,7 @@ func (rt *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if len(values) > 0 {
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, valuesKey, values)
+		ctx = context.WithValue(ctx, valuesKey{}, values)
 		r = r.WithContext(ctx)
 	}
 
@@ -189,9 +188,8 @@ func (rt *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetValues gets the match pattern values from the http.Request context
-func GetValues(r *http.Request) (map[string]string, bool) {
-	ctx := r.Context()
-	value := ctx.Value(valuesKey)
+func GetValues(ctx context.Context) (map[string]string, bool) {
+	value := ctx.Value(valuesKey{})
 	if value == nil {
 		return nil, false
 	}
@@ -206,10 +204,6 @@ func returnError(w http.ResponseWriter, msg string, code int) {
 		"msg":  msg,
 	}
 
-	body, err := json.Marshal(error)
-	if err != nil {
-		panic("Cannot marshal error message")
-	}
-
+	body, _ := json.Marshal(error)
 	http.Error(w, string(body), code)
 }

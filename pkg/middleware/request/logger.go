@@ -1,5 +1,9 @@
 package request
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"bytes"
 	"encoding/json"

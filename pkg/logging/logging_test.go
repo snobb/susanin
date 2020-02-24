@@ -4,120 +4,88 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/test/helper"
-	"github.com/franela/goblin"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestRouter(t *testing.T) {
-	g := goblin.Goblin(t)
+func TestLogger(t *testing.T) {
+	levels := []string{
+		"Info",
+		"Warn",
+		"Error",
+		"Debug",
+		"Trace",
+	}
 
-	//special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	for _, level := range levels {
+		testRunner(t, level)
+	}
+}
 
-	g.Describe("Default Logger", func() {
-		var (
-			logger logging.Logger
-			buf    bytes.Buffer
-		)
+func testRunner(t *testing.T, level string) {
+	var buf bytes.Buffer
 
-		g.Before(func() {
-			logger = logging.New("test", &buf)
-		})
+	type fields struct {
+		name string
+		Out  *bytes.Buffer
+	}
 
-		g.AfterEach(func() {
-			fmt.Println(buf.String())
+	tests := []struct {
+		name    string
+		fields  fields
+		args    []interface{}
+		checker func(map[string]interface{})
+	}{
+		{
+			fmt.Sprintf("create logger and log %s message", strings.ToUpper(level)),
+			fields{
+				level,
+				&buf,
+			},
+			[]interface{}{
+				"msg", "test message",
+				"key1", "value1",
+				"key2", "value2",
+				"key3", "value3",
+				"answer", 42,
+			},
+			func(v map[string]interface{}) {
+				assert.Equal(t, 9, len(v))
+				assert.Equal(t, strings.ToLower(level), v["level"])
+				assert.Equal(t, "test message", v["msg"])
+				assert.Equal(t, "value1", v["key1"])
+				assert.Equal(t, "value2", v["key2"])
+				assert.Equal(t, "value3", v["key3"])
+				assert.InDelta(t, 42.0, v["answer"], 0)
+				assert.Equal(t, strings.ToUpper(level), v["name"])
+				assert.InDelta(t, os.Getpid(), v["pid"], 0)
+				assert.Contains(t, v, "time")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dl := logging.New(tt.fields.name, &buf)
+
+			method := reflect.ValueOf(dl).MethodByName(level)
+			var args []reflect.Value
+			for _, arg := range tt.args {
+				args = append(args, reflect.ValueOf(arg))
+			}
+			method.Call(args)
+
+			line, err := helper.ParseJSONLog(&buf)
+			assert.Nil(t, err)
+
+			tt.checker(line)
+
 			buf.Reset()
 		})
-
-		g.It("Should create logger and log info message", func() {
-			pairs := []interface{}{
-				"msg", "test message",
-				"meta1", "value1",
-				"meta2", "value2",
-				"meta3", "value3",
-			}
-
-			logger.Info(pairs...)
-
-			fields, err := helper.ParseJSONLog(&buf)
-			Expect(err).To(BeNil())
-			Expect(fields).To(HaveLen(8))
-			Expect(fields).To(HaveKeyWithValue("level", "info"))
-			Expect(fields).To(HaveKeyWithValue("msg", "test message"))
-			Expect(fields).To(HaveKeyWithValue("meta1", "value1"))
-			Expect(fields).To(HaveKeyWithValue("meta2", "value2"))
-			Expect(fields).To(HaveKeyWithValue("meta3", "value3"))
-			Expect(fields).To(HaveKeyWithValue("name", "TEST"))
-			Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-			Expect(fields).To(HaveKey("time"))
-		})
-
-		g.It("Should create logger and log error message", func() {
-			pairs := []interface{}{
-				"msg", "test message",
-			}
-
-			logger.Error(pairs...)
-
-			fields, err := helper.ParseJSONLog(&buf)
-			Expect(err).To(BeNil())
-			Expect(fields).To(HaveLen(5))
-			Expect(fields).To(HaveKeyWithValue("level", "error"))
-			Expect(fields).To(HaveKeyWithValue("msg", "test message"))
-			Expect(fields).To(HaveKeyWithValue("name", "TEST"))
-			Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-			Expect(fields).To(HaveKey("time"))
-		})
-
-		g.It("Should create sublogger and log info message", func() {
-			l := logger.NewSubLogger("SUB")
-			pairs := []interface{}{
-				"msg", "test message",
-				"data", map[string]string{
-					"meta1": "value1",
-					"meta2": "value2",
-					"meta3": "value3",
-				},
-			}
-
-			l.Info(pairs...)
-
-			fields, err := helper.ParseJSONLog(&buf)
-			Expect(err).To(BeNil())
-			Expect(fields).To(HaveLen(6))
-			Expect(fields).To(HaveKeyWithValue("level", "info"))
-			Expect(fields).To(HaveKeyWithValue("msg", "test message"))
-			Expect(fields).To(HaveKeyWithValue("name", "TEST::SUB"))
-			Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-			Expect(fields).To(HaveKey("time"))
-			Expect(fields).To(HaveKeyWithValue("data", BeEquivalentTo(map[string]interface{}{
-				"meta1": "value1",
-				"meta2": "value2",
-				"meta3": "value3",
-			})))
-		})
-
-		g.It("Should create logger and log debug message", func() {
-			pairs := []interface{}{
-				"msg", "test message",
-				"debug", true,
-			}
-
-			logger.Debug(pairs...)
-
-			fields, err := helper.ParseJSONLog(&buf)
-			Expect(err).To(BeNil())
-			Expect(fields).To(HaveLen(6))
-			Expect(fields).To(HaveKeyWithValue("level", "debug"))
-			Expect(fields).To(HaveKeyWithValue("debug", true))
-			Expect(fields).To(HaveKeyWithValue("msg", "test message"))
-			Expect(fields).To(HaveKeyWithValue("name", "TEST"))
-			Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-			Expect(fields).To(HaveKey("time"))
-		})
-	})
+	}
 }

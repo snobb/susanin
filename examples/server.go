@@ -22,7 +22,7 @@ func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if values, ok := framework.GetValues(r); ok {
+	if values, ok := framework.GetValues(r.Context()); ok {
 		response.WithPayload(r.Context(), map[string]interface{}{
 			"first_name": values["fname"],
 			"last_name":  values["lname"],
@@ -35,7 +35,7 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 
 	uri := r.URL.Path
 
-	if values, ok := framework.GetValues(r); ok {
+	if values, ok := framework.GetValues(r.Context()); ok {
 		message = fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
 	}
 
