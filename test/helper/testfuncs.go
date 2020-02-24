@@ -7,6 +7,7 @@ package helper
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -52,6 +53,9 @@ func ParseAllJSONLog(buf *bytes.Buffer) (data []map[string]interface{}, err erro
 // This is useful when mocking log.* function.
 func ParseJSONLog(buf *bytes.Buffer) (data map[string]interface{}, err error) {
 	begin := strings.IndexRune(buf.String(), '{')
+	if begin == -1 {
+		return nil, fmt.Errorf("invalid json")
+	}
 	err = json.Unmarshal(buf.Bytes()[begin:], &data)
 	return
 }

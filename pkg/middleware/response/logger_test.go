@@ -1,5 +1,9 @@
 package response_test
 
+/**
+ * @author: Alex Kozadaev
+ */
+
 import (
 	"bytes"
 	"net/http"
@@ -7,72 +11,60 @@ import (
 	"os"
 	"testing"
 
-	"github.com/franela/goblin"
-	. "github.com/onsi/gomega"
-
-	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware/response"
 	"github.com/snobb/susanin/test/helper"
+	"github.com/stretchr/testify/assert"
 )
 
+func loggerHandler(logger logging.Logger) http.Handler {
+	mw := response.NewLogger(logger)
+	return mw(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+}
+
 func TestLogger(t *testing.T) {
-	g := goblin.Goblin(t)
+	var buf bytes.Buffer
 
-	//special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	tests := []struct {
+		name    string
+		args    logging.Logger
+		handler func(logging.Logger) http.Handler
+		checker []func(map[string]interface{})
+	}{
+		{
+			"test of pkg/middleware/response/logger.go",
+			logging.New("logger", &buf),
+			loggerHandler,
+			[]func(map[string]interface{}){
+				func(v map[string]interface{}) {
+					assert.Equal(t, "trace", v["level"])
+					assert.Equal(t, "LOGGER", v["name"])
+					assert.Equal(t, "response", v["type"])
+					assert.InDelta(t, 200, v["status"], 0)
+					assert.Contains(t, v, "time")
+					assert.InDelta(t, os.Getpid(), v["pid"], 0)
+					assert.Equal(t, "", v["body"])
+				},
+			},
+		},
+	}
 
-	g.Describe("Generic", func() {
-		var (
-			fw     *framework.Framework
-			buf    bytes.Buffer
-			req    *http.Request
-			logger logging.Logger
-			rr     *httptest.ResponseRecorder
-			err    error
-		)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest("GET", "/foo/bar", nil)
+			assert.Nil(t, err)
+			rr := httptest.NewRecorder()
 
-		g.Before(func() {
-			logger = logging.New("logger", &buf)
-			fw = framework.New()
+			tt.handler(tt.args).ServeHTTP(rr, req)
+
+			lines, err := helper.ParseAllJSONLog(&buf)
+			assert.Nil(t, err)
+
+			for i, line := range lines {
+				tt.checker[i](line)
+			}
+
+			buf.Reset()
 		})
-
-		g.JustBeforeEach(func() {
-			rr = httptest.NewRecorder()
-		})
-
-		g.Describe("response.Logger middleware", func() {
-			g.Before(func() {
-				fw.Attach(response.NewLogger(logger))
-				fw.Get("/*", helper.HandlerFactory(200, "root"))
-				fw.Post("/*", helper.HandlerFactory(200, "root"))
-			})
-
-			g.AfterEach(func() {
-				buf.Reset()
-			})
-
-			g.It("Should log the response successfully", func() {
-				req, err = http.NewRequest("GET", "/foo/bar?filter=13", nil)
-				Expect(err).To(BeNil())
-				req.Header.Set("content-type", "application/json")
-
-				fw.ServeHTTP(rr, req)
-
-				fields, err := helper.ParseJSONLog(&buf)
-				Expect(err).To(BeNil())
-
-				Expect(len(fields)).To(Equal(9))
-				Expect(fields).To(HaveKey("time"))
-				Expect(fields).To(HaveKeyWithValue("type", "response"))
-				Expect(fields).To(HaveKeyWithValue("elapsed", BeNumerically(">", 100)))
-				Expect(fields).To(HaveKeyWithValue("status", float64(200)))
-				Expect(fields).To(HaveKeyWithValue("body", "root"))
-
-				Expect(fields).To(HaveKeyWithValue("level", "trace"))
-				Expect(fields).To(HaveKeyWithValue("name", "LOGGER"))
-				Expect(fields).To(HaveKeyWithValue("pid", BeEquivalentTo(os.Getpid())))
-			})
-		})
-	})
+	}
 }
