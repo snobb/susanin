@@ -21,6 +21,9 @@ const (
 	mSize
 )
 
+// Route callback function
+type Route func()
+
 // Framework is a web framework main data structure
 type Framework struct {
 	prefix  string
@@ -30,17 +33,14 @@ type Framework struct {
 
 // New is the Framework constructor
 func New() *Framework {
-	return &Framework{
-		stack: make([]middleware.Middleware, 0),
-	}
+	return &Framework{}
 }
 
-// NewWithPrefix is the Framework constructor
-func NewWithPrefix(prefix string) *Framework {
-	return &Framework{
-		stack:  make([]middleware.Middleware, 0),
-		prefix: prefix,
-	}
+// WithPrefix registers paths with given prefix.
+func (fw *Framework) WithPrefix(prefix string, route Route) {
+	fw.prefix = prefix
+	route()
+	fw.prefix = ""
 }
 
 // Attach adds middleware to the chain
