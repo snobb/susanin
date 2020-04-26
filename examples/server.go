@@ -61,18 +61,18 @@ func main() {
 	logger := logging.New("example", os.Stderr)
 
 	fw := framework.New()
-	fw.WithPrefix("/api/v1", func() {
-		fw.Get("/home/*", homeHandler)
-		fw.Get("/test1", homeHandler)
-		fw.Get("/hello/:fname/by-name", helloSplatHandler)
-		fw.Get("/hello/:fname/:lname/", helloHandler)
-		fw.Get("/hello/:fname/*", helloSplatHandler)
-		fw.Get("/*", fallbackHandler)
-		fw.Post("/post/*", postHandler)
-	})
-
 	fw.WithPrefix("/api", func() {
 		fw.Get("/test2", homeHandler)
+
+		fw.WithPrefix("/v1", func() {
+			fw.Get("/home/*", homeHandler)
+			fw.Get("/test1", homeHandler)
+			fw.Get("/hello/:fname/by-name", helloSplatHandler)
+			fw.Get("/hello/:fname/:lname/", helloHandler)
+			fw.Get("/hello/:fname/*", helloSplatHandler)
+			fw.Get("/*", fallbackHandler)
+			fw.Post("/post/*", postHandler)
+		})
 	})
 
 	fw.Get("/", homeHandler)
