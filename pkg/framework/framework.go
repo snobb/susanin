@@ -6,6 +6,7 @@ package framework
 
 import (
 	"net/http"
+	"path"
 
 	"github.com/snobb/susanin/pkg/middleware"
 )
@@ -26,9 +27,9 @@ type Route func()
 
 // Framework is a web framework main data structure
 type Framework struct {
-	prefix  string
-	methods [mSize]*Router
-	stack   []middleware.Middleware
+	methods     [mSize]*Router
+	middlewares []middleware.Middleware
+	prefixes    []string
 }
 
 // New is the Framework constructor
@@ -38,24 +39,32 @@ func New() *Framework {
 
 // WithPrefix registers paths with given prefix.
 func (fw *Framework) WithPrefix(prefix string, route Route) {
-	fw.prefix = prefix
+	fw.prefixes = append(fw.prefixes, prefix)
+
 	route()
-	fw.prefix = ""
+
+	if len(fw.prefixes) > 0 {
+		fw.prefixes = fw.prefixes[:len(fw.prefixes)-1]
+	}
 }
 
 // Attach adds middleware to the chain
 func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
-	fw.stack = append(fw.stack, middlewares...)
+	fw.middlewares = append(fw.middlewares, middlewares...)
 	return fw
 }
 
-func (fw *Framework) handler(method int, path string, handler http.HandlerFunc) {
+func (fw *Framework) handler(method int, pattern string, handler http.HandlerFunc) {
 	if fw.methods[method] == nil {
 		fw.methods[method] = NewRouter()
 	}
 
 	rt := fw.methods[method]
-	if err := rt.Handle(fw.prefix+path, handler); err != nil {
+
+	pp := append([]string{}, fw.prefixes...)
+	pp = append(pp, pattern)
+
+	if err := rt.Handle(path.Join(pp...), handler); err != nil {
 		panic(err)
 	}
 }
@@ -103,8 +112,8 @@ func (fw *Framework) dispatch(w http.ResponseWriter, r *http.Request) {
 // It combines the chain and serves the HTTP requests.
 func (fw *Framework) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var h http.Handler = http.HandlerFunc(fw.dispatch)
-	for i := 0; i < len(fw.stack); i++ {
-		h = fw.stack[i](h)
+	for i := 0; i < len(fw.middlewares); i++ {
+		h = fw.middlewares[i](h)
 	}
 
 	h.ServeHTTP(w, r)
