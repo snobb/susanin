@@ -21,10 +21,10 @@ Optionally there are some middleware available:
 
 ## Features
 
-* **Lightweight** - tiny in size ~400SLOC.
+* **Lightweight** - tiny in size ~300SLOC.
 * **100% compatible with net/http** - use any http or middleware pkg in the ecosystem that is also compatible with `net/http`
 * **Context control** - built on new `context` package
-* **No external dependencies** - plain ol' Go 1.7+ stdlib + net/http
+* **No external dependencies** - plain Go 1.11+ stdlib + net/http (1.7 if not use go mod)
 
 
 ## Examples
