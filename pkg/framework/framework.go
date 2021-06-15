@@ -38,7 +38,7 @@ func New() *Framework {
 }
 
 // WithPrefix registers paths with given prefix.
-func (fw *Framework) WithPrefix(prefix string, route Route) {
+func (fw *Framework) WithPrefix(prefix string, route Route) *Framework {
 	fw.prefixes = append(fw.prefixes, prefix)
 
 	route()
@@ -46,6 +46,8 @@ func (fw *Framework) WithPrefix(prefix string, route Route) {
 	if len(fw.prefixes) > 0 {
 		fw.prefixes = fw.prefixes[:len(fw.prefixes)-1]
 	}
+
+	return fw
 }
 
 // Attach adds middleware to the chain

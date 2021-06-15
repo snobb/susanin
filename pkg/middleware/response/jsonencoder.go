@@ -9,9 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/snobb/susanin/pkg/logging"
-	"github.com/snobb/susanin/pkg/middleware"
 )
 
 type payloadKey struct{}
@@ -64,41 +61,39 @@ func WithError(ctx context.Context, err Error) {
 	WithPayload(ctx, err)
 }
 
-// NewJSONEncoder creates a new response middleware
-func NewJSONEncoder(logger logging.Logger) middleware.Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Add("content-type", "application/json")
-			ctx := contextWithPayload(r.Context())
+// JSONEncoder creates a new response middleware
+func JSONEncoder(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
+		ctx := contextWithPayload(r.Context())
 
-			next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r.WithContext(ctx))
 
-			enc, ok := fromContext(ctx)
-			if !ok {
-				// no response - nothing to do
-				return
+		enc, ok := fromContext(ctx)
+		if !ok {
+			// no response - nothing to do
+			return
+		}
+
+		// set the error code in case of an error
+		switch t := enc.payload.(type) {
+		case Error:
+			w.WriteHeader(t.Code)
+		case *Error:
+			w.WriteHeader(t.Code)
+		}
+
+		encoder := json.NewEncoder(w)
+
+		if enc.payload != nil {
+			if err := encoder.Encode(enc.payload); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				encoder.Encode(map[string]interface{}{
+					"code":    http.StatusInternalServerError,
+					"error":   err.Error(),
+					"message": http.StatusText(http.StatusInternalServerError),
+				})
 			}
-
-			// set the error code in case of an error
-			switch t := enc.payload.(type) {
-			case Error:
-				w.WriteHeader(t.Code)
-			case *Error:
-				w.WriteHeader(t.Code)
-			}
-
-			encoder := json.NewEncoder(w)
-
-			if enc.payload != nil {
-				if err := encoder.Encode(enc.payload); err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					encoder.Encode(map[string]interface{}{
-						"code":    http.StatusInternalServerError,
-						"error":   err.Error(),
-						"message": http.StatusText(http.StatusInternalServerError),
-					})
-				}
-			}
-		})
-	}
+		}
+	})
 }

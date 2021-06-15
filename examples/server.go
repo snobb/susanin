@@ -9,11 +9,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/snobb/susanin/pkg/framework"
-	"github.com/snobb/susanin/pkg/logging"
-	"github.com/snobb/susanin/pkg/middleware/request"
 	"github.com/snobb/susanin/pkg/middleware/response"
 )
 
@@ -58,8 +55,6 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 
-	logger := logging.New("example", os.Stderr)
-
 	fw := framework.New()
 	fw.WithPrefix("/api", func() {
 		fw.Get("/test2", homeHandler)
@@ -78,10 +73,7 @@ func main() {
 	fw.Get("/", homeHandler)
 	fw.Get("/test3", homeHandler)
 
-	fw.Attach(request.NewLogger(logger))
-	fw.Attach(response.NewJSONEncoder(logger))
-	fw.Attach(response.NewLogger(logger))
-	fw.Attach(response.NewTimer(logger))
+	fw.Attach(response.JSONEncoder)
 
 	mux.Handle("/", fw)
 	err := http.ListenAndServe(":8080", mux)

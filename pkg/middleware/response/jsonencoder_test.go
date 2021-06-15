@@ -8,23 +8,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/snobb/susanin/pkg/logging"
 	"github.com/snobb/susanin/pkg/middleware/response"
 	"github.com/stretchr/testify/assert"
 )
 
-var logger logging.Logger
-
 func getPayloadHandler(args interface{}) http.Handler {
-	mw := response.NewJSONEncoder(logger)
-	return mw(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+	return response.JSONEncoder(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		response.WithPayload(r.Context(), args)
 	}))
 }
 
 func getErrorHandler(args interface{}) http.Handler {
-	mw := response.NewJSONEncoder(logger)
-	return mw(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+	return response.JSONEncoder(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		response.WithError(r.Context(), args.(response.Error))
 	}))
 }
