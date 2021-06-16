@@ -54,7 +54,7 @@ func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 	return fw
 }
 
-func (fw *Framework) handler(method int, pattern string, handler http.HandlerFunc) {
+func (fw *Framework) handler(method int, pattern string, handler http.Handler) {
 	if fw.methods[method] == nil {
 		fw.methods[method] = NewRouter()
 	}
@@ -120,37 +120,37 @@ func (fw *Framework) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get adds handler for GET requests
-func (fw *Framework) Get(path string, handler http.HandlerFunc) {
+func (fw *Framework) Get(path string, handler http.Handler) {
 	fw.handler(mGet, path, handler)
 }
 
 // Put adds handler for PUT requests
-func (fw *Framework) Put(path string, handler http.HandlerFunc) {
+func (fw *Framework) Put(path string, handler http.Handler) {
 	fw.handler(mPut, path, handler)
 }
 
 // Post adds handler for POST requests
-func (fw *Framework) Post(path string, handler http.HandlerFunc) {
+func (fw *Framework) Post(path string, handler http.Handler) {
 	fw.handler(mPost, path, handler)
 }
 
 // Delete adds handler for DELETE requests
-func (fw *Framework) Delete(path string, handler http.HandlerFunc) {
+func (fw *Framework) Delete(path string, handler http.Handler) {
 	fw.handler(mDelete, path, handler)
 }
 
 // Patch adds handler for PATCH requests
-func (fw *Framework) Patch(path string, handler http.HandlerFunc) {
+func (fw *Framework) Patch(path string, handler http.Handler) {
 	fw.handler(mPatch, path, handler)
 }
 
 // Head adds handler for PATCH requests
-func (fw *Framework) Head(path string, handler http.HandlerFunc) {
+func (fw *Framework) Head(path string, handler http.Handler) {
 	fw.handler(mHead, path, handler)
 }
 
 // Options adds handler for PATCH requests
-func (fw *Framework) Options(path string, handler http.HandlerFunc) {
+func (fw *Framework) Options(path string, handler http.Handler) {
 	fw.handler(mOptions, path, handler)
 }
 

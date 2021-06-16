@@ -57,21 +57,20 @@ func main() {
 
 	fw := framework.New()
 	fw.WithPrefix("/api", func() {
-		fw.Get("/test2", homeHandler)
+		fw.Get("/test2", http.HandlerFunc(homeHandler))
 
 		fw.WithPrefix("/v1", func() {
-			fw.Get("/home/*", homeHandler)
-			fw.Get("/test1", homeHandler)
-			fw.Get("/hello/:fname/by-name", helloSplatHandler)
-			fw.Get("/hello/:fname/:lname/", helloHandler)
-			fw.Get("/hello/:fname/*", helloSplatHandler)
-			fw.Get("/*", fallbackHandler)
-			fw.Post("/post/*", postHandler)
+			fw.Get("/home/*", http.HandlerFunc(homeHandler))
+			fw.Get("/test1", http.HandlerFunc(homeHandler))
+			fw.Get("/hello/:fname/:lname/", http.HandlerFunc(helloHandler))
+			fw.Get("/hello/:fname/*", http.HandlerFunc(helloSplatHandler))
+			fw.Get("/*", http.HandlerFunc(fallbackHandler))
+			fw.Post("/post/*", http.HandlerFunc(postHandler))
 		})
 	})
 
-	fw.Get("/", homeHandler)
-	fw.Get("/test3", homeHandler)
+	fw.Get("/", http.HandlerFunc(homeHandler))
+	fw.Get("/test3", http.HandlerFunc(homeHandler))
 
 	fw.Attach(response.JSONEncoder)
 

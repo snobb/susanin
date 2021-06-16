@@ -26,7 +26,7 @@ type chainLink struct {
 	nextConst map[string]*chainLink
 	nextVar   *chainLink
 	nextSplat *chainLink
-	handler   http.HandlerFunc
+	handler   http.Handler
 }
 
 func newChainLink(token string) *chainLink {
@@ -48,7 +48,7 @@ func NewRouter() *Router {
 }
 
 // Handle add a route and a handler
-func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
+func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
@@ -113,7 +113,7 @@ func (rt *Router) Handle(path string, handler http.HandlerFunc) (err error) {
 }
 
 // Lookup for a handler in the path, a handler, pattern values and error is returned.
-func (rt *Router) Lookup(path string) (http.HandlerFunc, map[string]string, error) {
+func (rt *Router) Lookup(path string) (http.Handler, map[string]string, error) {
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -126,7 +126,7 @@ func (rt *Router) Lookup(path string) (http.HandlerFunc, map[string]string, erro
 	tokens := strings.Split(path, "/")
 
 	cur := rt.root
-	var splatHandler http.HandlerFunc
+	var splatHandler http.Handler
 	var values map[string]string
 	hasSplat := false
 	found := false
@@ -184,7 +184,7 @@ func (rt *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	handler(w, r)
+	handler.ServeHTTP(w, r)
 }
 
 // GetValues gets the match pattern values from the http.Request context
