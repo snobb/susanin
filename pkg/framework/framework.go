@@ -40,13 +40,11 @@ func New() *Framework {
 // WithPrefix registers paths with given prefix.
 func (fw *Framework) WithPrefix(prefix string, route Route) *Framework {
 	fw.prefixes = append(fw.prefixes, prefix)
+	defer func() {
+		fw.prefixes = fw.prefixes[:len(fw.prefixes)-1]
+	}()
 
 	route()
-
-	if len(fw.prefixes) > 0 {
-		fw.prefixes = fw.prefixes[:len(fw.prefixes)-1]
-	}
-
 	return fw
 }
 
