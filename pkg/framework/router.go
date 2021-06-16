@@ -199,11 +199,11 @@ func GetValues(ctx context.Context) (map[string]string, bool) {
 }
 
 func returnError(w http.ResponseWriter, msg string, code int) {
-	error := map[string]interface{}{
+	body, _ := json.Marshal(map[string]interface{}{
 		"code": code,
 		"msg":  msg,
-	}
+	})
 
-	body, _ := json.Marshal(error)
-	http.Error(w, string(body), code)
+	w.WriteHeader(code)
+	w.Write(body)
 }

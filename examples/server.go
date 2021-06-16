@@ -9,10 +9,34 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/snobb/susanin/pkg/framework"
 	"github.com/snobb/susanin/pkg/middleware/response"
 )
+
+func logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		log.Printf("type=request method=%s uri=%s proto=%s headers=%v",
+			r.Method, r.URL.Path, r.Proto, r.Header)
+
+		wbuf := response.NewBuffer(w)
+		defer wbuf.Flush()
+
+		next.ServeHTTP(wbuf, r)
+
+		body := wbuf.Body.Bytes()
+
+		if body[len(body)-1] == '\n' {
+			body = body[:len(body)-1]
+		}
+
+		log.Printf("type=response status=%d headers=%v body=%s time_diff=%s",
+			wbuf.Status, wbuf.Header(), string(body), time.Since(start))
+	})
+}
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("fallback handler\n"))
@@ -72,7 +96,7 @@ func main() {
 	fw.Get("/", http.HandlerFunc(homeHandler))
 	fw.Get("/test3", http.HandlerFunc(homeHandler))
 
-	fw.Attach(response.JSONEncoder)
+	fw.Attach(response.JSONEncoder, logMiddleware)
 
 	mux.Handle("/", fw)
 	err := http.ListenAndServe(":8080", mux)

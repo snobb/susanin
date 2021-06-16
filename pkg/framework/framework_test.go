@@ -86,7 +86,7 @@ func TestFramework_Get_Head_Delete_Options(t *testing.T) {
 				"should not match any endpoind and return HTTP 400",
 				"/foobar",
 				nil,
-				"{\"code\":404,\"msg\":\"Endpoint is not found\"}\n",
+				"{\"code\":404,\"msg\":\"Endpoint is not found\"}",
 				404,
 			},
 		}
