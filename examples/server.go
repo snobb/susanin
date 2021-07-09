@@ -77,8 +77,6 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	mux := http.NewServeMux()
-
 	fw := framework.New()
 	fw.WithPrefix("/api", func() {
 		fw.Get("/test2", http.HandlerFunc(homeHandler))
@@ -98,8 +96,7 @@ func main() {
 
 	fw.Attach(response.JSONEncoder, logMiddleware)
 
-	mux.Handle("/", fw)
-	err := http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", fw)
 	if err != nil {
 		log.Println(err.Error())
 	}
