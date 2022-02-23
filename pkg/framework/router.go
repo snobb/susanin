@@ -205,5 +205,5 @@ func returnError(w http.ResponseWriter, msg string, code int) {
 	})
 
 	w.WriteHeader(code)
-	w.Write(body)
+	_, _ = w.Write(body)
 }

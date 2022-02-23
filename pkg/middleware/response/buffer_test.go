@@ -82,7 +82,7 @@ func TestBuffer_Write(t *testing.T) {
 				t.Errorf("Buffer.Write() = %v, want %v", got, tt.want)
 			}
 
-			assert.JSONEq(t, string(tt.args.body), string(buf.Body.Bytes()))
+			assert.JSONEq(t, string(tt.args.body), buf.Body.String())
 		})
 	}
 }
@@ -147,7 +147,7 @@ func TestBuffer_Flush(t *testing.T) {
 
 			recorder, _ := tt.fields.Response.(*httptest.ResponseRecorder)
 			assert.Equal(t, 200, recorder.Code)
-			assert.JSONEq(t, `{"ima": "pc"}`, string(recorder.Body.Bytes()))
+			assert.JSONEq(t, `{"ima": "pc"}`, recorder.Body.String())
 			assert.Equal(t, 0, buf.Body.Len())
 		})
 	}

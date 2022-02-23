@@ -43,7 +43,7 @@ func TestFramework_Get_Head_Delete_Options(t *testing.T) {
 		assert.NoError(t, err)
 
 		w.WriteHeader(200)
-		w.Write(body)
+		_, _ = w.Write(body)
 	}
 
 	for _, m := range methods {
@@ -149,7 +149,7 @@ func TestFramework_Post_Put_Patch(t *testing.T) {
 
 				assert.Equal(t, name, string(body))
 				w.WriteHeader(code)
-				w.Write([]byte(name))
+				_, _ = w.Write([]byte(name))
 			}
 		}
 

@@ -39,15 +39,24 @@ func logMiddleware(next http.Handler) http.Handler {
 }
 
 func fallbackHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("fallback handler\n"))
+	if _, err := w.Write([]byte("fallback handler\n")); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	if values, ok := framework.GetValues(r.Context()); ok {
-		response.WithPayload(r.Context(), map[string]interface{}{
+		response := response.New(w)
+		err := response.Payload(r.Context(), map[string]interface{}{
 			"first_name": values["fname"],
 			"last_name":  values["lname"],
 		})
+		if err != nil {
+			w.WriteHeader(500)
+		}
 	}
 }
 
@@ -60,20 +69,32 @@ func helloSplatHandler(w http.ResponseWriter, r *http.Request) {
 		message = fmt.Sprintf("Hello %s [uri: %s]\n", values["fname"], uri)
 	}
 
+	if _, err := w.Write([]byte(message)); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write([]byte(message))
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := w.Write([]byte("home!!!\n")); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write([]byte("home!!!\n"))
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	bytes, _ := ioutil.ReadAll(r.Body)
 
+	if _, err := w.Write([]byte(fmt.Sprintf("response: %v\n", string(bytes)))); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("response: %v\n", string(bytes))))
 }
 
 func main() {
@@ -94,7 +115,7 @@ func main() {
 	fw.Get("/", http.HandlerFunc(homeHandler))
 	fw.Get("/test3", http.HandlerFunc(homeHandler))
 
-	fw.Attach(response.JSONEncoder, logMiddleware)
+	fw.Attach(logMiddleware)
 
 	err := http.ListenAndServe(":8080", fw)
 	if err != nil {
