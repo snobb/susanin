@@ -27,14 +27,22 @@ type Route func()
 
 // Framework is a web framework main data structure
 type Framework struct {
-	methods     [mSize]*Router
-	middlewares []middleware.Middleware
-	prefixes    []string
+	methods         [mSize]*Router
+	middlewares     []middleware.Middleware
+	prefixes        []string
+	notFoundHandler http.Handler
 }
 
 // New is the Framework constructor
 func New() *Framework {
 	return &Framework{}
+}
+
+// WithDefaultPrefix adds default prefix for all following route declarations. All previous ones
+// will NOT have the default prefix assigned.
+func (fw *Framework) WithDefaultPrefix(prefix string) *Framework {
+	fw.prefixes = append(fw.prefixes, prefix)
+	return fw
 }
 
 // WithPrefix registers paths with given prefix.
@@ -48,6 +56,12 @@ func (fw *Framework) WithPrefix(prefix string, route Route) *Framework {
 	return fw
 }
 
+// WithNotFoundHandler sets NotFoundHander that will be used in case the route is not found.
+func (fw *Framework) WithNotFoundHandler(notFoundHander http.Handler) *Framework {
+	fw.notFoundHandler = notFoundHander
+	return fw
+}
+
 // Attach adds middleware to the chain
 func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 	fw.middlewares = append(fw.middlewares, middlewares...)
@@ -56,7 +70,7 @@ func (fw *Framework) Attach(middlewares ...middleware.Middleware) *Framework {
 
 func (fw *Framework) handler(method int, pattern string, handler http.Handler) {
 	if fw.methods[method] == nil {
-		fw.methods[method] = NewRouter()
+		fw.methods[method] = NewRouter(fw.notFoundHandler)
 	}
 
 	rt := fw.methods[method]

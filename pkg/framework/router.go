@@ -18,7 +18,8 @@ const rootLink = "#ROOT#"
 
 // Router is a URI path router object
 type Router struct {
-	root *chainLink
+	root            *chainLink
+	notFoundHandler http.Handler
 }
 
 type chainLink struct {
@@ -41,9 +42,10 @@ func newChainLink(token string) *chainLink {
 }
 
 // NewRouter creates a new Router instance
-func NewRouter() *Router {
+func NewRouter(notFoundHandler http.Handler) *Router {
 	return &Router{
-		root: newChainLink(rootLink),
+		root:            newChainLink(rootLink),
+		notFoundHandler: notFoundHandler,
 	}
 }
 
@@ -112,8 +114,10 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 	return
 }
 
-// Lookup for a handler in the path, a handler, pattern values and error is returned.
-func (rt *Router) Lookup(path string) (http.Handler, map[string]string, error) {
+// Lookup for a handler in the path, a handler and pattern values is returned.
+// If handler is not found the function returns NotFoundHandler configured for the router (can be
+// nil).
+func (rt *Router) Lookup(path string) (http.Handler, map[string]string) {
 	if path[0] == '/' {
 		path = path[1:]
 	}
@@ -157,14 +161,14 @@ func (rt *Router) Lookup(path string) (http.Handler, map[string]string, error) {
 	}
 
 	if found && cur.handler != nil {
-		return cur.handler, values, nil
+		return cur.handler, values
 	}
 
 	if hasSplat {
-		return splatHandler, values, nil
+		return splatHandler, values
 	}
 
-	return nil, nil, fmt.Errorf("Endpoint is not found")
+	return rt.notFoundHandler, nil
 }
 
 // RouterHandler is a http.HandlerFunc router that dispatches the request
@@ -172,10 +176,12 @@ func (rt *Router) Lookup(path string) (http.Handler, map[string]string, error) {
 func (rt *Router) RouterHandler(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 
-	handler, values, err := rt.Lookup(uri)
-	if err != nil {
-		returnError(w, err.Error(), 404)
-		return
+	handler, values := rt.Lookup(uri)
+	if handler == nil {
+		// set default NotFoundHandler
+		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			returnError(w, "Endpoint is not found", 404)
+		})
 	}
 
 	if len(values) > 0 {

@@ -99,21 +99,31 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fw := framework.New()
-	fw.WithPrefix("/api", func() {
-		fw.Get("/test2", http.HandlerFunc(homeHandler))
-
-		fw.WithPrefix("/v1", func() {
-			fw.Get("/home/*", http.HandlerFunc(homeHandler))
-			fw.Get("/test1", http.HandlerFunc(homeHandler))
-			fw.Get("/hello/:fname/:lname/", http.HandlerFunc(helloHandler))
-			fw.Get("/hello/:fname/*", http.HandlerFunc(helloSplatHandler))
-			fw.Get("/*", http.HandlerFunc(fallbackHandler))
-			fw.Post("/post/*", http.HandlerFunc(postHandler))
-		})
-	})
+	fw = fw.WithNotFoundHandler(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(404)
+			_, _ = w.Write([]byte(`{"status":"Endpoint not found"}\n`))
+		}),
+	)
 
 	fw.Get("/", http.HandlerFunc(homeHandler))
 	fw.Get("/test3", http.HandlerFunc(homeHandler))
+
+	fw.WithDefaultPrefix("/api")
+	fw.Get("/test2", http.HandlerFunc(homeHandler))
+
+	fw.WithPrefix("/v1", func() {
+		fw.Get("/home/*", http.HandlerFunc(homeHandler))
+		fw.WithPrefix("/test", func() {
+			fw.Get("/1", http.HandlerFunc(homeHandler))
+			fw.Get("/2", http.HandlerFunc(homeHandler))
+			fw.Get("/3", http.HandlerFunc(homeHandler))
+		})
+		fw.Get("/hello/:fname/:lname/", http.HandlerFunc(helloHandler))
+		fw.Get("/hello/:fname/*", http.HandlerFunc(helloSplatHandler))
+		fw.Get("/*", http.HandlerFunc(fallbackHandler))
+		fw.Post("/post/*", http.HandlerFunc(postHandler))
+	})
 
 	fw.Attach(logMiddleware)
 

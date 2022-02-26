@@ -27,7 +27,7 @@ func TestRouter_NewRouter(t *testing.T) {
 	}{
 		{
 			"should instantiate correct router",
-			framework.NewRouter(),
+			framework.NewRouter(nil),
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestRouter_Handle(t *testing.T) {
 		},
 	}
 
-	r := framework.NewRouter()
+	r := framework.NewRouter(nil)
 	assert.NotNil(t, r)
 
 	for _, tt := range tests {
@@ -160,7 +160,7 @@ func TestRouter_Lookup(t *testing.T) {
 		},
 	}
 
-	r := framework.NewRouter()
+	r := framework.NewRouter(nil)
 	assert.NoError(t, r.Handle("/hello/:name", dynamic))
 	assert.NoError(t, r.Handle("/hello/:name/by-name", dynamic1))
 	assert.NoError(t, r.Handle("/hello/*", splat))
@@ -172,13 +172,13 @@ func TestRouter_Lookup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler, values, err := r.Lookup(tt.path)
+			handler, values := r.Lookup(tt.path)
 			if tt.wantErr {
-				assert.Error(t, err)
+				assert.Nil(t, handler)
 				return
 			}
 
-			assert.NoError(t, err)
+			assert.NotNil(t, handler)
 			assert.Equal(t, tt.wantValues, values)
 
 			wantHandler := runtime.FuncForPC(reflect.ValueOf(tt.wantHandler).Pointer()).Name()
