@@ -2,7 +2,7 @@ package framework_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -144,7 +144,7 @@ func TestFramework_Post_Put_Patch(t *testing.T) {
 	for _, m := range methods {
 		handler := func(code int, name string) func(http.ResponseWriter, *http.Request) {
 			return func(w http.ResponseWriter, r *http.Request) {
-				body, err := ioutil.ReadAll(r.Body)
+				body, err := io.ReadAll(r.Body)
 				assert.NoError(t, err)
 
 				assert.Equal(t, name, string(body))

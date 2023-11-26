@@ -91,7 +91,6 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 				cur.nextConst = make(map[string]*chainLink)
 				next = newChainLink(token)
 				cur.nextConst[token] = next
-
 			} else {
 				if found, ok := cur.nextConst[token]; ok {
 					next = found
@@ -111,7 +110,7 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 
 	cur.handler = handler
 
-	return
+	return nil
 }
 
 // Lookup for a handler in the path, a handler and pattern values is returned.
@@ -145,7 +144,6 @@ func (rt *Router) Lookup(path string) (http.Handler, map[string]string) {
 		if next, ok := cur.nextConst[token]; ok {
 			cur = next
 			found = true
-
 		} else if cur.nextVar != nil {
 			cur = cur.nextVar
 			if values == nil {
