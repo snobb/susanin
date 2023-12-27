@@ -40,6 +40,8 @@ func New() *Framework {
 
 // WithDefaultPrefix adds default prefix for all following route declarations. All previous ones
 // will NOT have the default prefix assigned.
+// As an alternative http.StripPrefix can be used to wrap the main Framework instance. That will
+// have the same effect as setting the prefix with this method right after creating the instance.
 func (fw *Framework) WithDefaultPrefix(prefix string) *Framework {
 	fw.prefixes = append(fw.prefixes, prefix)
 	return fw

@@ -7,7 +7,7 @@ package framework
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -54,7 +54,7 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 	splatIdx := strings.IndexRune(path, '*')
 
 	if splatIdx != -1 && splatIdx != len(path)-1 {
-		return fmt.Errorf("invalid path: splat must be at the end of the path")
+		return errors.New("invalid path: splat must be at the end of the path")
 	}
 
 	if path[0] == '/' {
@@ -76,7 +76,7 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 			if cur.nextVar == nil {
 				cur.nextVar = newChainLink(token)
 			} else if token[1:] != cur.nextVar.name {
-				return fmt.Errorf("conflict: duplicate pattern at the same level")
+				return errors.New("conflict: duplicate pattern at the same level")
 			}
 
 			cur = cur.nextVar
@@ -105,7 +105,7 @@ func (rt *Router) Handle(path string, handler http.Handler) (err error) {
 	}
 
 	if cur.handler != nil {
-		return fmt.Errorf("handler already exists")
+		return errors.New("handler already exists")
 	}
 
 	cur.handler = handler
@@ -131,8 +131,7 @@ func (rt *Router) Lookup(path string) (http.Handler, map[string]string) {
 	cur := rt.root
 	var splatHandler http.Handler
 	var values map[string]string
-	hasSplat := false
-	found := false
+	hasSplat, found := false, false
 
 	for _, token := range tokens {
 		if cur.nextSplat != nil {
@@ -203,11 +202,9 @@ func GetValues(ctx context.Context) (map[string]string, bool) {
 }
 
 func returnError(w http.ResponseWriter, msg string, code int) {
-	body, _ := json.Marshal(map[string]interface{}{
-		"code": code,
-		"msg":  msg,
-	})
-
 	w.WriteHeader(code)
-	_, _ = w.Write(body)
+	_ = json.NewEncoder(w).Encode(struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+	}{code, msg})
 }

@@ -124,7 +124,7 @@ func TestFramework_Get_Head_Delete_Options(t *testing.T) {
 				assert.NoError(t, err)
 
 				fw.ServeHTTP(rr, req)
-				assert.Equal(t, tt.wantBody, rr.Body.String())
+				assert.Equal(t, tt.wantBody, strings.TrimSpace(rr.Body.String()))
 				assert.Equal(t, tt.wantCode, rr.Code)
 			})
 		}

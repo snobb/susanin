@@ -99,12 +99,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fw := framework.New()
-	fw = fw.WithNotFoundHandler(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(404)
-			_, _ = w.Write([]byte(`{"status":"Endpoint not found"}\n`))
-		}),
-	)
+	fw = fw.WithNotFoundHandler(http.NotFoundHandler())
 
 	fw.Get("/", http.HandlerFunc(homeHandler))
 	fw.Get("/test3", http.HandlerFunc(homeHandler))
@@ -127,6 +122,7 @@ func main() {
 
 	fw.Attach(logMiddleware)
 
+	// can use http.StripPrefix instead of fw.WithDefaultPrefix here with the same effect.
 	err := http.ListenAndServe(":8080", fw)
 	if err != nil {
 		log.Println(err.Error())
