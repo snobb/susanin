@@ -15,20 +15,16 @@ import (
 )
 
 func TestFramework_New(t *testing.T) {
-	tests := []struct {
-		name    string
-		what    *framework.Framework
-		wantNil bool
+	tests := map[string]struct {
+		what *framework.Framework
 	}{
-		{
-			"should instantiate a new framework",
-			framework.New(),
-			false,
+		"should instantiate a new framework": {
+			what: framework.New(),
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			assert.NotNil(t, tt.what)
 		})
 	}
@@ -47,47 +43,42 @@ func TestFramework_Get_Head_Delete_Options(t *testing.T) {
 	}
 
 	for _, m := range methods {
-		tests := []struct {
+		tests := map[string]struct {
 			name       string
 			path       string
 			wantValues *map[string]string
 			wantBody   string
 			wantCode   int
 		}{
-			{
-				"should match /short endpoint and return HTTP 200 with 'short' body",
-				"/short",
-				nil,
-				"short",
-				200,
+			"should match /short endpoint and return HTTP 200 with 'short' body": {
+				path:       "/short",
+				wantValues: nil,
+				wantBody:   "short",
+				wantCode:   200,
 			},
-			{
-				"should match / endpoint and return HTTP 200 with 'root' body",
-				"/",
-				nil,
-				"root",
-				200,
+			"should match / endpoint and return HTTP 200 with 'root' body": {
+				path:       "/",
+				wantValues: nil,
+				wantBody:   "root",
+				wantCode:   200,
 			},
-			{
-				"should match /home endpoint and return HTTP 200 with 'home' body",
-				"/home/foobar",
-				nil,
-				"home",
-				200,
+			"should match /home endpoint and return HTTP 200 with 'home' body": {
+				path:       "/home/foobar",
+				wantValues: nil,
+				wantBody:   "home",
+				wantCode:   200,
 			},
-			{
-				"should match /hello/<vars> endpoint and return HTTP 200 with json body",
-				"/hello/john/doe",
-				nil,
-				`{"fname":"john","lname":"doe"}`,
-				200,
+			"should match /hello/<vars> endpoint and return HTTP 200 with json body": {
+				path:       "/hello/john/doe",
+				wantValues: nil,
+				wantBody:   `{"fname":"john","lname":"doe"}`,
+				wantCode:   200,
 			},
-			{
-				"should not match any endpoind and return HTTP 400",
-				"/foobar",
-				nil,
-				"{\"code\":404,\"msg\":\"Endpoint is not found\"}",
-				404,
+			"should not match any endpoind and return HTTP 400": {
+				path:       "/foobar",
+				wantValues: nil,
+				wantBody:   "{\"code\":404,\"msg\":\"Endpoint is not found\"}",
+				wantCode:   404,
 			},
 		}
 
@@ -116,8 +107,8 @@ func TestFramework_Get_Head_Delete_Options(t *testing.T) {
 			}
 		}
 
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
+		for name, tt := range tests {
+			t.Run(name, func(t *testing.T) {
 				rr := httptest.NewRecorder()
 
 				req, err := http.NewRequest(m, tt.path, nil)
@@ -153,29 +144,25 @@ func TestFramework_Post_Put_Patch(t *testing.T) {
 			}
 		}
 
-		tests := []struct {
-			name     string
+		tests := map[string]struct {
 			path     string
 			wantBody string
 			wantCode int
 		}{
-			{
-				"should route to POST / handler and have a body",
-				"/",
-				"root",
-				200,
+			"should route to POST / handler and have a body": {
+				path:     "/",
+				wantBody: "root",
+				wantCode: 200,
 			},
-			{
-				"should route to POST /short handler and have a body",
-				"/short",
-				"short",
-				200,
+			"should route to POST /short handler and have a body": {
+				path:     "/short",
+				wantBody: "short",
+				wantCode: 200,
 			},
-			{
-				"should route to POST /home splat handler and have a body",
-				"/home/test",
-				"home",
-				200,
+			"should route to POST /home splat handler and have a body": {
+				path:     "/home/test",
+				wantBody: "home",
+				wantCode: 200,
 			},
 		}
 
@@ -201,8 +188,8 @@ func TestFramework_Post_Put_Patch(t *testing.T) {
 			}
 		}
 
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
+		for name, tt := range tests {
+			t.Run(name, func(t *testing.T) {
 				rr := httptest.NewRecorder()
 
 				req, err := http.NewRequest(m, tt.path, strings.NewReader(tt.wantBody))
